@@ -1,0 +1,253 @@
+#!/usr/bin/perl
+#
+# Class: Feed
+#   class for saving information as newsfeed (f.e. RSS)
+
+package Feed;
+
+use FeedEntry;
+use Settings;
+
+use strict;
+
+####################################
+# Group: Settings
+####################################
+
+# Const: $MAX_ENTRIES
+#   maximal number of entries in feed
+my $MAX_ENTRIES = 17;
+
+# Const: $GENERATOR_NAME
+#   string describing generator of the feed (can be empty)
+my $GENERATOR_NAME = "Wikinews RSS bot by Derbeth ver. ".$Settings::VERSION;
+
+####################################
+# Group: Functions
+####################################
+
+# Constructor: new
+#   just creates new feed object, nothing is saved
+#
+# Parameters:
+#   $filename - path to file where feed should be saved
+#   $title - title of the whole feed
+#   $website - URL to website from which the feed is generated
+#   $description - short description
+#   $lang code - ISO code of feed language (by default 'pl')
+#   $webmaster - information about feed maintainer (by default blank)
+#   $pub_date - date when feed was first uploaded (by default blank)
+#   $encoding - character encoding (by default 'utf-8')
+sub new {
+    my($classname,$filename,$title,$website,$description,
+	$lang_code,$webmaster,$pub_date,$encoding) = @_;
+    
+    $lang_code = 'pl' unless defined($lang_code);
+    $webmaster = '' unless defined($webmaster);
+    $pub_date = '' unless defined($pub_date);
+    $encoding = 'utf-8' unless defined($encoding);
+	
+    printf("filename: $filename\n"); # DEBUG
+
+    my $self = {};
+    bless($self, "Feed");
+   
+    $self->{'filename'} = $filename;
+    $self->{'title'} = $title;
+    $self->{'website'} = $website;
+    $self->{'description'} = $description;
+    $self->{'lang_code'} = $lang_code;
+    $self->{'webmaster'} = $webmaster;
+    $self->{'pub_date'} = $pub_date;
+    $self->{'encoding'} = $encoding;
+    
+    $self->{'image_url'} = '';
+    $self->{'image_title'} = '';
+    $self->{'image_link'} = '';
+    $self->{'image_width'} = '';
+    $self->{'image_height'} = '';
+    $self->{'copyright'} = '';
+    
+    $self->{'entries'} = [];
+   
+    return $self;
+}
+
+# Function: setImage
+#   sets feed icon, remember to use before saving the feed
+#
+# Parameters:
+#   $url - URL to the image
+#   $title - image alternative text
+#   $link - URL where image points to
+#   $width - image width
+#   $height - image height
+sub setImage {
+	my($self,$url,$title,$link,$width,$height) = @_;
+	
+	$self->{'image_url'} = $url;
+	$self->{'image_title'} = $title;
+	$self->{'image_link'} = $link;
+	$self->{'image_width'} = $width;
+	$self->{'image_height'} = $height;
+}
+
+# Function: setCopyright
+#   sets copyright information of the feed
+#
+# Parameters:
+#   $copyright - copyright text
+sub setCopyright {
+	my($self,$copyright) = @_;
+	
+	$self->{'copyright'} = $copyright;
+}
+	
+# Function: toString
+#   returns string representing feed
+#
+# Important:
+#   returns debug data
+sub toString {
+	return "Feed"; # TEMP
+}
+
+# Function: getTimezone
+#   returns feed timezone eg. '+0100'
+#
+# Important:
+#   returns hard-coded data
+sub getTimezone {
+    return "+0100"; # TEMP
+}
+
+# Function: formatTime
+#   returns time formatted properly
+#
+# Parameters:
+#   $timestamp - timestamp
+#
+# Return value:
+#   string like 'Sun, 19 May 2002 15:21:36 GMT'
+sub formatTime {
+	my($self, $timestamp) = @_;
+	unless( defined($timestamp) ) { die "formatTime: must pass a parameter"; }
+	my $retval;
+	
+	my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($timestamp);
+	my $dayname = qw/Sun Mon Tue Wed Thu Fri Sat/[$wday];
+	my $monthname = qw/Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec/[$mon];
+	$year += 1900;
+	
+	$retval = sprintf "$dayname, %02d $monthname $year %02d:%02d:%02d %s",
+	$mday,$hour,$min,$sec, $self->getTimezone();
+	return $retval;
+}
+
+# Function: addEntry
+#   adds new entry
+#
+# Parameters:
+#   $title - news title
+#   $date - news date (timestamp)
+#   $link - URL to website with news
+#   $summary - summary text
+#
+# Remarks:
+#   if there are already <$MAX_ENTRIES>, oldest one is deleted to make place for
+#   new
+sub addEntry {
+	my($self,$title,$date,$link,$summary) = @_;
+	
+	#if( $#{$self->{'entries'}} > $MAX_ENTRIES ) { return 0; } # don't add
+	if( $#{$self->{'entries'}} >= $MAX_ENTRIES ) {
+		shift @{$self->{'entries'}}; # remove oldest
+	}
+	
+	$date = $self->formatTime($date);
+	my $new_entry = new FeedEntry($title,$date,$link,$summary);
+	
+	push @{$self->{'entries'}}, $new_entry; # oldest entries first
+	
+	#print "add entry $title - $link - $date\n" #DEBUG;
+}
+
+sub removeEntry {
+	my ($self, $entry_title) = @_;
+	
+	for(my $i=0; $i<=$#{$self->{'entries'}}; ++$i)
+	{
+		if( $self->{'entries'}[$i]->{'title'} eq $entry_title )
+		{ # deleting
+			for(my $j=$i; $j<$#{$self->{'entries'}}; ++$j)
+			{
+				$self->{'entries'}[$j] = $self->{'entries'}[$j+1];
+			}
+			--$#{$self->{'entries'}};
+			return 1;
+		}
+	}
+	return 0;
+}
+
+# Function: getHeading
+#   internal function returning heading of the feed (part not dependant on items)
+sub getHeading {
+	my $self = pop @_;
+	my $retval;
+	
+	$retval .= "<?xml version=\"1.0\" encoding=\"$self->{'encoding'}\"?>\n";
+	$retval .= "<rss version=\"2.0\">\n";
+	$retval .= "<channel>\n";
+	$retval .= "<generator>$GENERATOR_NAME</generator>\n" if $GENERATOR_NAME;
+	$retval .= "<title>$self->{'title'}</title>\n";
+	$retval .= "<link>$self->{'website'}</link>\n";
+	$retval .= "<description>$self->{'description'}</description>\n";
+	$retval .= "<language>$self->{'lang_code'}</language>\n";
+	$retval .= "<webMaster>$self->{'webmaster'}</webMaster>\n" if $self->{'webmaster'};
+	
+	$retval .= "<docs>http://backend.userland.com/rss/</docs>\n";
+	$retval .= "<pubDate>$self->{'pub_date'}</pubDate>\n" if $self->{'pub_date'};
+	$retval .= "<lastBuildDate>".$self->formatTime(time())."</lastBuildDate>\n";
+	
+	if($self->{'image_url'} ne '' && $self->{'image_title'} ne '' && $self->{'image_link'} ne '')
+	{
+		$retval .= "<image>\n  <url>$self->{'image_url'}</url>\n";
+		$retval .= "  <title>$self->{'image_title'}</title>\n";
+		$retval .= "  <link>$self->{'image_link'}</link>\n";
+		$retval .= "  <width>$self->{'image_width'}</width>\n" if $self->{'image_width'};
+		$retval .= "  <height>$self->{'image_height'}</height>\n" if $self->{'image_height'};
+		$retval .= "</image>\n";
+	}
+	$retval .= "<copyright>$self->{'copyright'}</copyright>\n" if $self->{'copyright'};
+	
+	return $retval;
+}
+    
+
+# Function: save
+#   saves feed to file
+sub save {
+	my $self = pop @_;
+	
+	open(FEED_FILE,"> $self->{'filename'}") or die "cannot open file $self->{'filename'} to save feed";
+	print FEED_FILE $self->getHeading();
+	
+	my $i;
+	for($i= $#{$self->{'entries'}}; $i>=0; --$i) {  # start from end - latest first
+	    print FEED_FILE $self->{'entries'}[$i]->toXML();
+	}
+
+   print FEED_FILE "</channel>\n";
+   print FEED_FILE "</rss>\n";
+
+	close FEED_FILE;
+
+	
+	my $now = localtime();
+	print "-> feed saved - $now\n";
+	
+	# nothing now
+}
+
+1;
