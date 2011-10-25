@@ -136,3 +136,4 @@ sub removeNews {
 }
 
 1;
+

@@ -245,7 +245,7 @@ sub save {
 
 	
 	my $now = localtime();
-	print "-> feed saved - $now\n";
+	print "-> feed $self->{filename} (", scalar(@{$self->{'entries'}}), " items) saved - $now\n";
 	
 	# nothing now
 }

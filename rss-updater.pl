@@ -4,7 +4,7 @@
 #   Updates RSS feed of Wikinews
 #
 # Version:
-#   0.4.4
+#   0.4.5
 #
 # Parameters:
 #   none
@@ -87,7 +87,7 @@ my $MAX_NEW_NEWS = 15;
 
 # Const: $NEWS_LIST_URL
 #   URL to list of news
-my $NEWS_LIST_URL = 'http://pl.wikinews.org/w/index.php?title=Szablon:Najnowsze_wiadomo%C5%9Bci&action=purge';
+my $NEWS_LIST_URL = 'http://pl.wikinews.org/w/index.php?title=Szablon:Najnowsze_wiadomo%C5%9Bci';
 
 # Const: $MAX_FETCH_FAILURES
 #   how many fetch failures can be tollerated
@@ -233,8 +233,11 @@ sub retrieve_news_headlines {
 	my $content = pop @_;
 	my $retval = new NewsList;
 	
+	open(OUT, ">last_headlines.xml");
+	print OUT $content;
+	close(OUT);
 	if( $content eq '' ) { return $retval; }
-	if ($content =~ /<!-- bodytext -->/) {
+	if ($content =~ /<!-- *(bodytext|bodycontent|start content) *-->/) {
 		$content = $';
 	} else {
 		print STDERR "WARN: cannot cut off begin\n";
@@ -317,3 +320,4 @@ while( 1 ) {
 	
 	sleep(60 * $CHECKOUT_PAUSE);
 }
+
