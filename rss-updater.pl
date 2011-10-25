@@ -4,7 +4,7 @@
 #   Updates RSS feed of Wikinews
 #
 # Version:
-#   0.4.3
+#   0.4.4
 #
 # Parameters:
 #   none
@@ -234,8 +234,19 @@ sub retrieve_news_headlines {
 	my $retval = new NewsList;
 	
 	if( $content eq '' ) { return $retval; }
+	if ($content =~ /<!-- bodytext -->/) {
+		$content = $';
+	} else {
+		print STDERR "WARN: cannot cut off begin\n";
+	}
+	if ($content =~ /<div class="printfooter">/) {
+		$content = $`;
+	} else {
+		print STDERR "WARN: cannot cut off end\n";
+	}
 	
 	my $count = 0;
+	my @titles; # for debug
 	
 	while( 1 ) {
 		if( $content =~ /<a href=(.+?)<\/a>/ )
@@ -243,16 +254,15 @@ sub retrieve_news_headlines {
 			$content = $'; # POSTMATCH
 			
 			my $whole_link = $1;
-			if( $whole_link =~ /^"(.+?)" title="(.+?)">(.*)/ && $whole_link !~ /class="new"/)
+			if( $whole_link =~ /^"([^">]+)"[^>]*>(.*)/ && $whole_link !~ /class="new"/)
 			{
-				my($m1,$m2,$m3)=($1,$2,$3);
-				$m2 =~ s/&quot;/"/g;
+				my($m1,$m2)=($1,$2);
 				#print "|$1|$2|$3|\n"; #DEBUG "
-				unless( $m2 eq $m3 ) { next; }
 				my $news_headline = new NewsHeadline($m2,$Settings::LINK_PREFIX.$m1);
 				#print $news_headline->toString() . "\n"; # DEBUG
 				$retval->add($news_headline);
 				
+				push @titles, $m2;
 				if( ++$count >= $MAX_NEW_NEWS ) { last; } # end after adding $MAX_NEW_NEWS news
 			}
 		} else {
@@ -261,6 +271,7 @@ sub retrieve_news_headlines {
 	}
 	
 	$retval->reverseList(); # oldest news first
+	#print STDERR scalar(@titles), " news: ", join(' ', map {"`$_'"} @titles), "\n"; # debug
 	
 	return( $retval );
 }
