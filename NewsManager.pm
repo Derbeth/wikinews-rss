@@ -14,15 +14,12 @@ use strict 'vars';
 use Feed;
 use NewsListIterator;
 use NewsList;
+use Settings;
+use Status;
 
 ####################################
 # Group: Settings
 ####################################
-
-# Const: $WAIT_TIME
-#   time every news has to wait in pending list until it is removed as
-#   outdated or saved as accepted
-my $WAIT_TIME = 4;
 
 # Const: $MAX_PENDING
 #   how many entries can wait in pending queue
@@ -44,14 +41,14 @@ sub new {
 	
 	my $self = {};
    bless($self, "NewsManager");
-   
+
    $self->{'pending'} = new NewsList($MAX_PENDING); # news waiting for confirmation
    $self->{'saved'} = new NewsList($MAX_SAVED);     # list already saved in feed
    $self->{'feed'} = $feed_ref;
-   
+
    $self->{'feed_changed'} = 0; # if something new was added, is set to 1
-                                  # and feed is saved to disk
-   
+                                # and feed is saved to disk
+
    return $self;
 }
 
@@ -69,7 +66,7 @@ sub processNewNews {
 	{
 		my $news = $iterator->getNext();
 		
-		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) >= $WAIT_TIME )
+		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) > $Settings::NEWS_ACCEPT_TIME )
 		{
 			$self->saveNews($news);
 		
@@ -90,13 +87,20 @@ sub processNewNews {
 		$self->removeNews($news);
 	}
 	
-	$self->{'pending'}->removeOlderThan($WAIT_TIME);
+	$self->{'pending'}->removeOlderThan($Settings::NEWS_ACCEPT_TIME);
 	
 	if( $self->{'feed_changed'} == 1 )
 	{
+		$self->{'last_saved'} = scalar(localtime());
 		${$self->{'feed'}}->save();
 	}
-	
+
+	set_status(1, $self->{'last_saved'});
+	if ($Settings::DEBUG_MODE) {
+		print "\n", scalar(localtime()), ' ';
+		print "Accepted: ", $self->{'saved'}->toString(1), "\n";
+		print "Pending: ", $self->{'pending'}->toString(1), "\n";
+	}
 }
 
 # Function: saveNews

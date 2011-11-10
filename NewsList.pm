@@ -116,20 +116,20 @@ sub contains {
 # Function: toString
 #
 sub toString {
-	my $self = pop @_;
+	my ($self, $short) = @_;
 	my $retval = "";
 	
-	$retval .= "size: " . ($#{$self->{'news'}}+1) . "\n"; # DEBUG
+# 	$retval .= "size: " . ($#{$self->{'news'}}+1) . "\n"; # DEBUG
 	my $i;
 	for($i=0; $i<=$#{$self->{'news'}}; ++$i)
 	{
-		$retval .= $self->{'news'}[$i]->toString() . "\n";
+		$retval .= $self->{'news'}[$i]->toString($short) . "\n";
 	}
 	return $retval;
 }
 
 # Function: removeOlderThan
-#   removes news that has age $age or are older (>=)
+#   removes news that are older than $age
 sub removeOlderThan {
 	my($self, $age) = @_;
 
@@ -139,7 +139,7 @@ sub removeOlderThan {
 	
 	for($i=0; $i<=$#{$self->{'news'}}; )
 	{
-		if( $self->{'news'}[$i]->getAgeMinutes() >= $age )
+		if( $self->{'news'}[$i]->getAgeMinutes() > $age )
 		{ # deleting
 			my $elm = pop @{$self->{'news'}};
 			if( $i <= $#{$self->{'news'}} )

@@ -3,9 +3,6 @@
 # Program: rss-updater.pl
 #   Updates RSS feed of Wikinews
 #
-# Version:
-#   0.4.5
-#
 # Parameters:
 #   none
 #
@@ -37,6 +34,7 @@ use NewsList;
 use NewsManager;
 use Feed;
 use Settings;
+use Status;
 
 use Net::SMTP; 
 
@@ -51,31 +49,6 @@ use strict 'vars';
 #   - <NewsManager::$WAIT_TIME>, <NewsManager::$MAX_PENDING> and <NewsManager::$MAX_SAVED>
 #   - <Feed::$MAX_ENTRIES>
 ############################################################################
-
-# Const: $OUTPUT_FILE
-#   path where generated RSS file should be placed
-my $OUTPUT_FILE = '../public_html/wikinews.xml';
-
-# Const: $STATUS_FILE
-#   path to HTML file where bot writes its current status
-#
-#   If variable is empty, status is not written.
-my $STATUS_FILE = '../public_html/status.html';
-
-
-# Const: $CHECKOUT_PAUSE
-#   pause between checking list of current news (in minutes)
-#
-# Description:
-#   Gives editors time to correct mistakes, delete vandalism etc.
-#   After $CHECKOUT_PAUSE news from list is added to queue and after
-#   another $CHECKOUT_PAUSE it is either accepted (if it is still on list
-#   received from server) or deleted (if it is not on the list).
-#   So editors have 2 * $CHECKOUT_PAUSE minutes to correct mistakes.
-#
-# See also:
-#   <NewsManager::$WAIT_TIME>: both values should be synchronised
-my $CHECKOUT_PAUSE = 5;
 
 # Const: $MAX_NEW_NEWS
 #   how many news are fetched from list
@@ -93,10 +66,6 @@ my $NEWS_LIST_URL = 'http://pl.wikinews.org/w/index.php?title=Szablon:Najnowsze_
 #   how many fetch failures can be tollerated
 my $MAX_FETCH_FAILURES = 20;
 
-# Var: $ADMIN_MAIL
-#   Mail address used to contact bot administrator
-my $ADMIN_MAIL = 'der'.'beth.fora' . '@w'.'p.pl';
-
 # Const: $ERROR_CLEAR_DELAY
 #   after n main loops error count will be decreased by one
 #   As result, every ($CHECKOUT_PAUSE * $ERROR_CLEAR_DELAY) minutes error number
@@ -112,66 +81,6 @@ Derbeth::Web::set('USER_AGENT','DerbethBot/beta (Linux) Opera rulez');
 ############################################################################
 # Section: Functions
 ############################################################################
-
-# Function: notify_admin
-#   sends and e-mail notifying administrator of bot crash
-sub notify_admin {
-	open(MAIL, "|/usr/lib/sendmail -t");
-
-   print MAIL "To: $ADMIN_MAIL\n";
-   print MAIL "From: $ENV{USER}\n";
-   print MAIL "Subject: RSS bot dead\n";
-
-   print MAIL "Wikinews RSS bot is dead.\n";
-
-   close (MAIL);
-}
-
-
-# Function: set_status
-#   set status: running or failure, saves it to a HTML file
-#
-# Parametrs:
-#   $running - see below
-#
-# Status:
-#   0 - running
-#   1 - stopped (closed)
-#   2 - dead (on error)
-sub set_status {
-	my $running = pop @_;
-#	print "ELO\n";
-	if( $STATUS_FILE eq '') { return; } # no status file
-	
-	my $desc;
-	
-	unless( open(STATUS, "> $STATUS_FILE") ) {
-		print "cannot open status file for writing\n";
-		##$STATUS_FILE = ''; # prevent from next attempts to write to the file
-		return;
-	}
-	print STATUS '<html><head><title>Wikinews RSS bot status</title></head><body><p><strong>';
-	
-	SWITCH: {
-		if( $running == 0 )  {
-			print STATUS 'RUNNING'; $desc = "bot ok";
-			last SWITCH;
-		}
-		if( $running == 1 ) {
-			print  STATUS 'STOPPED'; $desc = "bot was stopped or system was closed";
-			last SWITCH;
-		}
-		print STATUS 'DEAD'; $desc = "bot terminated because of an error";
-	}
-	
-	print STATUS "</strong></p><p>$desc</p>";
-	print STATUS '</body></html>';
-
-	close STATUS;
-	
-	if( $running == 2 ) { notify_admin(); }
-}
-	
 
 # Variable: $fetch_failures
 #   internal variable, counts fetch failures for <fetch_news_list()>
@@ -197,25 +106,25 @@ sub fetch_news_list {
    #my $c = <FILE>;
    #while($c) { $retval .= $c; $c=<FILE>; }
    #return get_content($retval);
-   my $error_msg = '';
-   
-   my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($NEWS_LIST_URL);
-   
-   if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
-   if( Derbeth::Wikipedia::jest_redirectem($page) ) { $error_msg = "redirect instead of news list";}
-   if(! Derbeth::Wikipedia::strona_istnieje($page) ) { $error_msg = "news list: page does not exist"; }
-   
-   if( $error_msg ne '' ) {
-   	my $now = localtime();
-   	print "$now:  $error_msg\n";
-   	if( ++$fetch_failures >= $MAX_FETCH_FAILURES ) {
-   		set_status(2);
+	my $error_msg = '';
+
+	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($NEWS_LIST_URL);
+
+	if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
+	if( Derbeth::Wikipedia::jest_redirectem($page) ) { $error_msg = "redirect instead of news list";}
+	if(! Derbeth::Wikipedia::strona_istnieje($page) ) { $error_msg = "news list: page does not exist"; }
+
+	if( $error_msg ne '' ) {
+		my $now = localtime();
+		print "$now:  $error_msg\n";
+		if( ++$fetch_failures >= $MAX_FETCH_FAILURES ) {
+			set_status(2);
 			die "too many errors ($fetch_failures)";
 		}
 		return '';
 	}
-   
-   return $page;
+
+	return $page;
 }
 
 # Function: retrieve_news_headlines
@@ -233,7 +142,7 @@ sub retrieve_news_headlines {
 	my $content = pop @_;
 	my $retval = new NewsList;
 	
-	open(OUT, ">last_headlines.xml");
+	open(OUT, ">$Settings::HEADLINES_FILE");
 	print OUT $content;
 	close(OUT);
 	if( $content eq '' ) { return $retval; }
@@ -274,7 +183,9 @@ sub retrieve_news_headlines {
 	}
 	
 	$retval->reverseList(); # oldest news first
-	#print STDERR scalar(@titles), " news: ", join(' ', map {"`$_'"} @titles), "\n"; # debug
+	if ($Settings::DEBUG_MODE) {
+		print STDERR "Fetched ", scalar(@titles), " news: ", join(' ', map {"`$_'"} @titles), "\n";
+	}
 	
 	return( $retval );
 }
@@ -293,13 +204,13 @@ sub clear_errors
 ############################################################################
 
 # sets close event handler
-$SIG{INT} = $SIG{TERM} = sub { set_status(1); exit; };
+$SIG{INT} = $SIG{TERM} = sub { Status::set_status(2); exit; };
 # sets crash event handler
-$SIG{__DIE__} = sub { print @_; set_status(2); exit; };
+$SIG{__DIE__} = sub { print @_; Status::set_status(3); exit; };
 
-set_status(0); # running
+Status::set_status(0); # started
 
-my $feed = new Feed($OUTPUT_FILE,'Wikinews Polska','http://pl.wikinews.org/',
+my $feed = new Feed($Settings::OUTPUT_FILE,'Wikinews Polska','http://pl.wikinews.org/',
 	'Kana&#322; RSS Wikinews Polska');
 $feed->setImage('http://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Wikinews-logo-en.png/120px-Wikinews-logo-en.png',
 	'Wikinews Polska','http://pl.wikinews.org/',120,92);
@@ -310,7 +221,7 @@ my $news_manager = new NewsManager($feed);
 print "rss-updater version $Settings::VERSION running. Hit Control+C to exit.\n\n";
 
 while( 1 ) {
-	my $news_list = fetch_news_list(); # http://pl.wikinews.org/wiki/Szablon:Najnowszewiadomoci
+	my $news_list = fetch_news_list();
 	
 	my $news_headlines = retrieve_news_headlines($news_list);
 
@@ -318,6 +229,6 @@ while( 1 ) {
 	
 	clear_errors();
 	
-	sleep(60 * $CHECKOUT_PAUSE);
+	sleep(60 * $Settings::CHECKOUT_PAUSE);
 }
 

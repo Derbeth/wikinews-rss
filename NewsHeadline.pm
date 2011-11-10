@@ -93,14 +93,15 @@ sub getDate {
 # Function: toString
 #
 # Parameters:
-#   none
+#   $short - if true, only title will be rendered
 #
 # Returns:
 #   string representing news
 sub toString {
-	my $self = pop(@_);
-	my $retval;
-	$retval = sprintf('%s - %s - %i',$self->{'title'},$self->{'link'},$self->getAgeMinutes());
+	my ($self, $short) = @_;
+	my $retval = $short
+		? "'" . $self->{'title'} . "'"
+		: sprintf('%s - %s - %i',$self->{'title'},$self->{'link'},$self->getAgeMinutes());
 	return $retval;
 }
 
