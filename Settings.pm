@@ -13,7 +13,7 @@ $LINK_PREFIX = 'http://pl.wikinews.org';
 
 # Const: $VERSION
 #   program version
-$VERSION = '0.4.9';
+$VERSION = '0.5.0';
 
 # Const: $DEBUG_MODE
 #   setting to true causes more diagnostic messages to be printed

@@ -7,12 +7,13 @@ package Derbeth::Web;
 @EXPORT = ('pobierz_strone','ustaw_online');
 
 use LWP;
+use HTML::Form;
 use HTTP::Daemon;
 use HTTP::Status;
 use HTTP::Response;
 use HTTP::Request;
 use HTTP::Request::Common;
-use HTTP::Status;
+use HTTP::Status qw(:constants :is status_message);
 
 #use encoding 'cp1250'; # - wywoluje bledy
 use Digest::MD5 'md5_hex';
@@ -72,21 +73,41 @@ sub czy_cacheowac {
 # Function: sciagnij_strone
 #   sciaga strone z internetu (funkcja wewnetrzna)
 sub strona_z_sieci {
-   my $adres = shift @_;
-   my $ua = LWP::UserAgent->new;
-   $ua->agent($USER_AGENT);
-   my $response = ( $DOWNLOAD_METHOD eq 'get' ) ? $ua->get($adres) : $ua->post($adres);
-   if( ! $response->is_success ) {
-   	my $err_msg = 'nieznany blad';
-   	if( $response->is_error ) {
-   		$err_msg = status_message( $response->code );
-   	}
-		print "nie udalo sie pobrac strony $adres. komunikat: '$err_msg'\n";
-   	return '';
-   }
-   
-   my $text = $response->content;
-   return $text;
+	my $adres = shift @_;
+	my $ua = LWP::UserAgent->new;
+	$ua->agent($USER_AGENT);
+	my $response = ( $DOWNLOAD_METHOD eq 'get' ) ? $ua->get($adres) : $ua->post($adres);
+	if( ! $response->is_success ) {
+		my $err_msg = 'nieznany blad';
+		if( $response->is_error ) {
+			$err_msg = status_message( $response->code );
+		}
+			print "nie udalo sie pobrac strony $adres. komunikat: '$err_msg'\n";
+		return '';
+	}
+	
+	my $text = $response->decoded_content;
+	return $text;
+}
+
+sub purge_page {
+	my ($url) = @_;
+	my $page = strona_z_sieci($url.'&action=purge');
+	my $ua = LWP::UserAgent->new;
+	my @forms = HTML::Form->parse($page, $Settings::LINK_PREFIX);
+	@forms = grep $_->attr("class") && $_->attr("class") eq "visualClear", @forms;
+	my $form = shift @forms;
+	unless($form) {
+		print "No purge form";
+		return;
+	}
+#     $form->dump();
+	my $request = $form->click();
+#     print "REQUEST:\n", $request->as_string();
+	my $response = $ua->request($request);
+	if( $response->is_error ) {
+		print "Error purging: ", $response->status_line(), "\n";
+	}
 }
 
 sub strona_z_pliku {

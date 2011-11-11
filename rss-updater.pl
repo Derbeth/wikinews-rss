@@ -36,8 +36,6 @@ use Feed;
 use Settings;
 use Status;
 
-use Net::SMTP; 
-
 use strict 'vars';
 
 ############################################################################
@@ -108,6 +106,7 @@ sub fetch_news_list {
    #return get_content($retval);
 	my $error_msg = '';
 
+	Derbeth::Web::purge_page($NEWS_LIST_URL);
 	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($NEWS_LIST_URL);
 
 	if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
