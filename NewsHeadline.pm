@@ -203,7 +203,10 @@ sub fetchSummary {
 				$summary = $';
 			}
 		}
-		
+
+		# remove notes
+		$summary =~ s!<sup id="cite_ref[^>]+><a[^>]+>[^<>]+</a></sup>!!;
+
 		if( $summary eq '' ) { # on error set title as summary
 			#die "error";
 			$self->{'summary'} = $self->{'title'}; return $self->{'summary'};
