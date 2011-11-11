@@ -8,6 +8,8 @@ package Feed;
 use FeedEntry;
 use Settings;
 
+use Encode;
+
 use strict;
 
 ####################################
@@ -235,7 +237,7 @@ sub save {
 	
 	my $i;
 	for($i= $#{$self->{'entries'}}; $i>=0; --$i) {  # start from end - latest first
-	    print FEED_FILE $self->{'entries'}[$i]->toXML();
+	    print FEED_FILE encode_utf8($self->{'entries'}[$i]->toXML());
 	}
 
    print FEED_FILE "</channel>\n";
