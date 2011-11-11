@@ -23,13 +23,13 @@ use Derbeth::Web;
 sub znajdz_adres {
 
    my $strona = shift @_;
-   
+
    #usuwamy [[ i ]]
    $strona =~ /^\s*\[\[([^]]*)]]\s*$/ or return ();
    $strona = $1;
 
    ## obsuga rodzaju projektu
-   
+
    {
       # Projekt:
       #   0 - wikipedia
@@ -40,11 +40,11 @@ sub znajdz_adres {
       #   5 - commons
       #   6 - meta
       $projekt = 0;
-      
+
       $strona =~ /^(\w+):/;
-      
+
       my $kasuj_prefiks = 0;
-      
+
       SWITCH1: {
          if( $1 eq 'w' ) { $projekt = 0; $kasuj_prefiks = 1; last SWITCH1; }
          if( $1 eq 'b' ) { $projekt = 1; $kasuj_prefiks = 1; last SWITCH1; }
@@ -54,38 +54,38 @@ sub znajdz_adres {
          if( $1 eq 'commons' ) { $projekt = 5; $kasuj_prefiks = 1; last SWITCH1; }
          if( $1 eq 'm' || $1 eq 'meta' ) { $projekt = 6; $kasuj_prefiks = 1; last SWITCH1; }
       }
-      
+
       if( $kasuj_prefiks ) {
          $strona =~ s/^(\w+:)//;
       }
    }
-   
+
    ## obsuga j?kw
-   
+
    {
       # J?ki
       #    0 - pl
       #    1 - en
       #    2 - de
       $jezyk = 0;
-      
+
       $strona =~ /^(\w+):/;
-      
+
       my $kasuj_prefiks = 0;
-      
+
       SWITCH2: {
         if( $1 eq 'pl' ) { $jezyk = 0; $kasuj_prefiks = 1; last SWITCH2; }
         if( $1 eq 'en' ) { $jezyk = 1; $kasuj_prefiks = 1; last SWITCH2; }
         if( $1 eq 'de' ) { $jezyk = 2; $kasuj_prefiks = 1; last SWITCH2; }
       }
-      
+
       if( $kasuj_prefiks ) {
          $strona  =~ s/^(\w+:)//;
       }
    }
-   
+
    ## konstruujemy adres
-   
+
    {
       my $a_jezyk;
       SWITCH3: {
@@ -94,7 +94,7 @@ sub znajdz_adres {
          if( $jezyk == 2 ) { $a_jezyk = 'de'; last SWITCH3; }
          die "zla wartosc a_jezyk: $a_jezyk";
       }
-      
+
       my $a_projekt;
       SWITCH4: {
          if( $projekt == 0 ) { $a_projekt = 'wikipedia'; last SWITCH4; }
@@ -106,10 +106,10 @@ sub znajdz_adres {
          if( $projekt == 6 ) { $a_jezyk = 'meta'; $a_projekt = 'wikimedia'; last SWITCH4; }
          die "zla wartosc a_projekt: $a_projekt";
       }
-      
+
       $domena = "$a_jezyk.$a_projekt.org";
    }
-   
+
    return ("http://$domena/wiki/$strona",$strona,$domena);
 }
 
@@ -121,7 +121,7 @@ sub znajdz_adres {
 sub strona_istnieje {
    my $text = \shift @_;
    #return( index($$text, "Search/$nazwa_strony") == -1 );
-   return( index($$text, ':Log/delete') == -1 && index($$text, 'Wikibooks nie posiada') == -1 
+   return( index($$text, ':Log/delete') == -1 && index($$text, 'Wikibooks nie posiada') == -1
       && index($$text, 'Wikipedii nie ma') == -1 && index($$text, 'Nie ma jeszcze artyk') == -1
 		&& index($$text, 'Clear the cache') == -1 && index($$text, 'Access Denied') == -1);
 }
@@ -155,7 +155,7 @@ sub wydziel_zawartosc_odkreski {
    return substr($$text, $poczatek, $koniec-$poczatek);
 }
 
-# 
+#
 sub pobierz_zawartosc_strony {
    my $url = shift @_;
 

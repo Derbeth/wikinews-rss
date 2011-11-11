@@ -59,7 +59,7 @@ sub skrot_adresu {
    #print "[a:$adres]";
    #utf8::decode $adres;
    return md5_hex($adres);
-   
+
 }
 
 sub czy_cacheowac {
@@ -85,7 +85,7 @@ sub strona_z_sieci {
 			print "nie udalo sie pobrac strony $adres. komunikat: '$err_msg'\n";
 		return '';
 	}
-	
+
 	my $text = $response->decoded_content;
 	return $text;
 }
@@ -98,7 +98,7 @@ sub purge_page {
 	@forms = grep $_->attr("class") && $_->attr("class") eq "visualClear", @forms;
 	my $form = shift @forms;
 	unless($form) {
-		print "No purge form";
+		print "No purge form ", scalar(localtime()), "\n";
 		return;
 	}
 #     $form->dump();
@@ -106,7 +106,7 @@ sub purge_page {
 #     print "REQUEST:\n", $request->as_string();
 	my $response = $ua->request($request);
 	if( $response->is_error ) {
-		print "Error purging: ", $response->status_line(), "\n";
+		print "Error purging: ", $response->status_line(), ' ', scalar(localtime()), "\n";
 	}
 }
 
@@ -123,7 +123,7 @@ sub strona_z_pliku {
 sub strona_do_pliku {
    my $tekst = \shift @_;
    my $plik = shift @_;
-   
+
    open(PLIK,'>',$plik) or die "nie udalo sie zapisac strony do pliku $plik";
    print PLIK $$tekst;
 }
