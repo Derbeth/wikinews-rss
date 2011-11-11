@@ -18,6 +18,9 @@ use Settings;
 use strict;
 use English;
 
+use Time::Local;
+use URI::Escape qw/uri_escape_utf8/;
+
 ############################################################################
 # Group: Settings 
 ############################################################################
@@ -62,6 +65,7 @@ sub new {
    $self->{'title'} = $title;
    $self->{'link'} = $link;
    $self->{'time'} = $time;
+   $self->{'hardcoded_time'} = 1;
    $self->{'summary'} = '';
    #printf("title: '%s' (%s)\n", $self->{'title'}, $title); DEBUG
    
@@ -85,6 +89,22 @@ sub getAgeMinutes {
 
 sub getDate {
 	my $self = pop @_;
+
+	if ($self->{'hardcoded_time'}) {
+		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&titles=".uri_escape_utf8($self->{'title'});
+		my $xml = Derbeth::Web::strona_z_sieci($url);
+		if ($xml =~ m!"timestamp" *: *"([^"]+)"!) {
+			my $timestamp = $1;
+			if ($timestamp =~ /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z$/) {
+				$self->{'time'} = timelocal($6,$5,$4,$3,$2,$1);
+			} elsif ($Settings::DEBUG_MODE) {
+				print "Cannot parse date: $timestamp\n";
+			}
+		} elsif ($Settings::DEBUG_MODE) {
+			print "Wrong API response: $xml\n";
+		}
+		$self->{'hardcoded_time'} = 0;
+	}
 	
 	#return "Mon, 12 Dec 2005 12:45 CET"; # TEMP TODO
 	return $self->{'time'};

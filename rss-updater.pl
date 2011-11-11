@@ -185,7 +185,7 @@ sub retrieve_news_headlines {
 	
 	$retval->reverseList(); # oldest news first
 	if ($Settings::DEBUG_MODE) {
-		print STDERR "Fetched ", scalar(@titles), " news: ", join(' ', map {"`$_'"} @titles), "\n";
+		print STDERR "Fetched ", scalar(@titles), " news: ", join(' ', map {encode_utf8("`$_'")} @titles), "\n";
 	}
 	
 	return( $retval );

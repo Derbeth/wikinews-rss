@@ -127,7 +127,7 @@ sub getTimezone {
 #   returns time formatted properly
 #
 # Parameters:
-#   $timestamp - timestamp
+#   $timestamp - timestamp (like the result of time() function)
 #
 # Return value:
 #   string like 'Sun, 19 May 2002 15:21:36 GMT'

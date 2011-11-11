@@ -17,6 +17,8 @@ use NewsList;
 use Settings;
 use Status;
 
+use Encode;
+
 ####################################
 # Group: Settings
 ####################################
@@ -98,8 +100,8 @@ sub processNewNews {
 	set_status(1, $self->{'last_saved'});
 	if ($Settings::DEBUG_MODE) {
 		print "\n", scalar(localtime()), ' ';
-		print "Accepted: ", $self->{'saved'}->toString(1), "\n";
-		print "Pending: ", $self->{'pending'}->toString(1), "\n";
+		print "Accepted: ", encode_utf8($self->{'saved'}->toString(1)), "\n";
+		print "Pending: ", encode_utf8($self->{'pending'}->toString(1)), "\n";
 	}
 }
 
