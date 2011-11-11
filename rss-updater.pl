@@ -29,6 +29,8 @@
 # Encoding:
 #   UTF-8
 
+use Encode;
+
 use NewsHeadline;
 use NewsList;
 use NewsManager;
@@ -142,7 +144,7 @@ sub retrieve_news_headlines {
 	my $retval = new NewsList;
 	
 	open(OUT, ">$Settings::HEADLINES_FILE");
-	print OUT $content;
+	print OUT encode_utf8($content);
 	close(OUT);
 	if( $content eq '' ) { return $retval; }
 	if ($content =~ /<!-- *(bodytext|bodycontent|start content) *-->/) {
