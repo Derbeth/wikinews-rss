@@ -92,16 +92,19 @@ sub getDate {
 
 	if ($self->{'hardcoded_time'}) {
 		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&titles=".uri_escape_utf8($self->{'title'});
-		my $xml = Derbeth::Web::strona_z_sieci($url);
-		if ($xml =~ m!"timestamp" *: *"([^"]+)"!) {
+		my $json = Derbeth::Web::strona_z_sieci($url);
+		if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
 			my $timestamp = $1;
 			if ($timestamp =~ /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z$/) {
-				$self->{'time'} = timelocal($6,$5,$4,$3,$2,$1);
+				my $month = $2 - 1;
+				# we use timegm() instead of timelocal() because dates from
+				# JSON are in UTC (time zone is Z)
+				$self->{'time'} = timegm($6,$5,$4,$3,$month,$1);
 			} elsif ($Settings::DEBUG_MODE) {
 				print "Cannot parse date: $timestamp\n";
 			}
 		} elsif ($Settings::DEBUG_MODE) {
-			print "Wrong API response: $xml\n";
+			print "Wrong API response: $json\n";
 		}
 		$self->{'hardcoded_time'} = 0;
 	}
