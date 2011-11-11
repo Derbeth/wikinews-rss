@@ -7,8 +7,9 @@ package Settings;
 use strict;
 use Exporter;
 
-use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DEBUG_MODE $HEADLINES_FILE
-	$LINK_PREFIX $NEWS_ACCEPT_TIME $OUTPUT_FILE $STATUS_FILE $VERSION);
+use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
+	$DEBUG_MODE $HEADLINES_FILE $LINK_PREFIX $NEWS_ACCEPT_TIME
+	$OUTPUT_FILE $STATUS_FILE $VERSION);
 $LINK_PREFIX = 'http://pl.wikinews.org';
 
 # Const: $VERSION
@@ -51,6 +52,11 @@ $CHECKOUT_PAUSE = 5;
 #   time (in minutes) every news has to wait in pending list until it is removed as
 #   outdated or saved as accepted
 $NEWS_ACCEPT_TIME = 5;
+
+# Const: $DATE_FROM_NEWEST_REVISION
+#   if true, each news item will have the date of its newest revision
+#   if false, each news item will have the date of its oldest revision
+$DATE_FROM_NEWEST_REVISION = 1;
 
 # Var: $ADMIN_MAIL
 #   Mail address used to contact bot administrator

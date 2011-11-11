@@ -91,7 +91,8 @@ sub getDate {
 	my $self = pop @_;
 
 	if ($self->{'hardcoded_time'}) {
-		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&titles=".uri_escape_utf8($self->{'title'});
+		my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
+		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1&titles=".uri_escape_utf8($self->{'title'});
 		my $json = Derbeth::Web::strona_z_sieci($url);
 		if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
 			my $timestamp = $1;
