@@ -16,10 +16,6 @@ use strict;
 # Group: Settings
 ####################################
 
-# Const: $MAX_ENTRIES
-#   maximal number of entries in feed
-my $MAX_ENTRIES = 17;
-
 # Const: $GENERATOR_NAME
 #   string describing generator of the feed (can be empty)
 my $GENERATOR_NAME = "Wikinews RSS bot by Derbeth ver. ".$Settings::VERSION;
@@ -156,13 +152,13 @@ sub formatTime {
 #   $summary - summary text
 #
 # Remarks:
-#   if there are already <$MAX_ENTRIES>, oldest one is deleted to make place for
+#   if there are already <$Settings::MAX_ENTRIES>, oldest one is deleted to make place for
 #   new
 sub addEntry {
 	my($self,$title,$date,$link,$summary) = @_;
 	
 	#if( $#{$self->{'entries'}} > $MAX_ENTRIES ) { return 0; } # don't add
-	if( $#{$self->{'entries'}} >= $MAX_ENTRIES ) {
+	if( $#{$self->{'entries'}} >= $Settings::MAX_ENTRIES ) {
 		shift @{$self->{'entries'}}; # remove oldest
 	}
 	
@@ -201,14 +197,12 @@ sub getHeading {
 	$retval .= "<?xml version=\"1.0\" encoding=\"$self->{'encoding'}\"?>\n";
 	$retval .= "<rss version=\"2.0\">\n";
 	$retval .= "<channel>\n";
-	$retval .= "<generator>$GENERATOR_NAME</generator>\n" if $GENERATOR_NAME;
+	$retval .= "<language>$self->{'lang_code'}</language>\n";
 	$retval .= "<title>$self->{'title'}</title>\n";
 	$retval .= "<link>$self->{'website'}</link>\n";
 	$retval .= "<description>$self->{'description'}</description>\n";
-	$retval .= "<language>$self->{'lang_code'}</language>\n";
 	$retval .= "<webMaster>$self->{'webmaster'}</webMaster>\n" if $self->{'webmaster'};
 	
-	$retval .= "<docs>http://backend.userland.com/rss/</docs>\n";
 	$retval .= "<pubDate>$self->{'pub_date'}</pubDate>\n" if $self->{'pub_date'};
 	$retval .= "<lastBuildDate>".$self->formatTime(time())."</lastBuildDate>\n";
 	
@@ -221,6 +215,8 @@ sub getHeading {
 		$retval .= "  <height>$self->{'image_height'}</height>\n" if $self->{'image_height'};
 		$retval .= "</image>\n";
 	}
+	$retval .= "<docs>http://backend.userland.com/rss/</docs>\n";
+	$retval .= "<generator>$GENERATOR_NAME</generator>\n" if $GENERATOR_NAME;
 	$retval .= "<copyright>$self->{'copyright'}</copyright>\n" if $self->{'copyright'};
 	
 	return $retval;

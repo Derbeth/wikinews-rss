@@ -38,7 +38,8 @@ use Feed;
 use Settings;
 use Status;
 
-use strict 'vars';
+use strict;
+use utf8;
 
 ############################################################################
 # Section: Settings 
@@ -49,18 +50,6 @@ use strict 'vars';
 #   - <NewsManager::$WAIT_TIME>, <NewsManager::$MAX_PENDING> and <NewsManager::$MAX_SAVED>
 #   - <Feed::$MAX_ENTRIES>
 ############################################################################
-
-# Const: $MAX_NEW_NEWS
-#   how many news are fetched from list
-#
-# See also:
-#   <NewsManager::$MAX_PENDING>, <NewsManager::$MAX_SAVED>,
-#   <Feed::$MAX_ENTRIES>
-my $MAX_NEW_NEWS = 15;
-
-# Const: $NEWS_LIST_URL
-#   URL to list of news
-my $NEWS_LIST_URL = 'http://pl.wikinews.org/w/index.php?title=Szablon:Najnowsze_wiadomo%C5%9Bci';
 
 # Const: $MAX_FETCH_FAILURES
 #   how many fetch failures can be tollerated
@@ -108,8 +97,8 @@ sub fetch_news_list {
    #return get_content($retval);
 	my $error_msg = '';
 
-	Derbeth::Web::purge_page($NEWS_LIST_URL);
-	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($NEWS_LIST_URL);
+	Derbeth::Web::purge_page($Settings::NEWS_LIST_URL) if $Settings::PURGE_NEWS_LIST;
+	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($Settings::NEWS_LIST_URL);
 
 	if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
 	if( Derbeth::Wikipedia::jest_redirectem($page) ) { $error_msg = "redirect instead of news list";}
@@ -176,7 +165,7 @@ sub retrieve_news_headlines {
 				$retval->add($news_headline);
 				
 				push @titles, $m2;
-				if( ++$count >= $MAX_NEW_NEWS ) { last; } # end after adding $MAX_NEW_NEWS news
+				if( ++$count >= $Settings::MAX_NEW_NEWS ) { last; } # end after adding $MAX_NEW_NEWS news
 			}
 		} else {
 			last;
@@ -211,12 +200,11 @@ $SIG{__DIE__} = sub { print @_; Status::set_status(3); exit; };
 
 Status::set_status(0); # started
 
-my $feed = new Feed($Settings::OUTPUT_FILE,'Wikinews Polska','http://pl.wikinews.org/',
-	'Kana&#322; RSS Wikinews Polska');
-$feed->setImage('http://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Wikinews-logo-en.png/120px-Wikinews-logo-en.png',
-	'Wikinews Polska','http://pl.wikinews.org/',120,92);
-$feed->setCopyright('Zawarto&#347;&#263; Wikinews Polska dost&#281;pna na licencji '
-	. 'Creative Commons 2.5 Uznanie Autorstwa (http://creativecommons.org/licenses/by/2.5/)');
+my $feed = new Feed($Settings::OUTPUT_FILE, $Settings::FEED_TITLE, $Settings::PAGE_URL,
+	$Settings::FEED_DESCRIPTION);
+$feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
+	$Settings::LOGO_WIDTH, $Settings::LOGO_HEIGHT);
+$feed->setCopyright($Settings::FEED_COPYRIGHT);
 my $news_manager = new NewsManager($feed);
 
 print "rss-updater version $Settings::VERSION running. Hit Control+C to exit.\n\n";
@@ -232,4 +220,3 @@ while( 1 ) {
 	
 	sleep(60 * $Settings::CHECKOUT_PAUSE);
 }
-
