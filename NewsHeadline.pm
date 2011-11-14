@@ -19,6 +19,7 @@ use strict;
 use English;
 
 use Time::Local;
+use Time::localtime;
 use URI::Escape qw/uri_escape_utf8/;
 
 ############################################################################
@@ -65,7 +66,7 @@ sub new {
    $self->{'title'} = $title;
    $self->{'link'} = $link;
    $self->{'time'} = $time;
-   $self->{'hardcoded_time'} = 1;
+   $self->{'metadata_read'} = 0;
    $self->{'summary'} = '';
    #printf("title: '%s' (%s)\n", $self->{'title'}, $title); DEBUG
    
@@ -87,14 +88,14 @@ sub getAgeMinutes {
 	return $time_diff / 60;
 }
 
-sub getDate {
+sub _readMetadata {
 	my $self = pop @_;
 
-	if ($self->{'hardcoded_time'}) {
-		my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
-		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1&titles=".uri_escape_utf8($self->{'title'});
+	if (! $self->{'metadata_read'}) {
+		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=info&titles=".uri_escape_utf8($self->{'title'});
 		my $json = Derbeth::Web::strona_z_sieci($url);
-		if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
+		my $success = 0;
+		if ($json =~ m!"touched" *: *"([^"]+)"!) {
 			my $timestamp = $1;
 			if ($timestamp =~ /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z$/) {
 				my $month = $2 - 1;
@@ -104,14 +105,39 @@ sub getDate {
 			} elsif ($Settings::DEBUG_MODE) {
 				print "Cannot parse date: $timestamp\n";
 			}
-		} elsif ($Settings::DEBUG_MODE) {
+			$success = 1;
+		}
+
+		if ($json =~ m!"pageid" *: *(\d+)!) {
+			# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
+			my $pageid = $1;
+			my $domain = $Settings::DOMAIN;
+			my $year = localtime->year() + 1900;
+			$self->{'guid'} = "tag:$domain,$year:$pageid";
+			$success = 1;
+		}
+
+		if (! $success && $Settings::DEBUG_MODE) {
 			print "Wrong API response: $json\n";
 		}
-		$self->{'hardcoded_time'} = 0;
+		$self->{'metadata_read'} = 1;
 	}
-	
-	#return "Mon, 12 Dec 2005 12:45 CET"; # TEMP TODO
+}
+
+# returns date in format like "Mon, 12 Dec 2005 12:45 CET"
+sub getDate {
+	my $self = pop @_;
+
+	$self->_readMetadata();
 	return $self->{'time'};
+}
+
+# returns date in format like "Mon, 12 Dec 2005 12:45 CET"
+sub getGuid {
+	my $self = pop @_;
+
+	$self->_readMetadata();
+	return $self->{'guid'};
 }
 
 # Function: toString

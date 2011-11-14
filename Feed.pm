@@ -38,9 +38,9 @@ my $GENERATOR_NAME = "Wikinews RSS bot by Derbeth ver. ".$Settings::VERSION;
 #   $encoding - character encoding (by default 'utf-8')
 sub new {
     my($classname,$filename,$title,$website,$description,
-	$lang_code,$webmaster,$pub_date,$encoding) = @_;
+	$lang_code,$feed_link,$webmaster,$pub_date,$encoding) = @_;
     
-    $lang_code = 'pl' unless defined($lang_code);
+    $lang_code = 'pl' unless $lang_code;
     $webmaster = '' unless defined($webmaster);
     $pub_date = '' unless defined($pub_date);
     $encoding = 'utf-8' unless defined($encoding);
@@ -55,6 +55,7 @@ sub new {
     $self->{'website'} = $website;
     $self->{'description'} = $description;
     $self->{'lang_code'} = $lang_code;
+    $self->{'feed_link'} = $feed_link;
     $self->{'webmaster'} = $webmaster;
     $self->{'pub_date'} = $pub_date;
     $self->{'encoding'} = $encoding;
@@ -150,12 +151,13 @@ sub formatTime {
 #   $date - news date (timestamp)
 #   $link - URL to website with news
 #   $summary - summary text
+#   $guid - GUID of the news item (optional)
 #
 # Remarks:
 #   if there are already <$Settings::MAX_ENTRIES>, oldest one is deleted to make place for
 #   new
 sub addEntry {
-	my($self,$title,$date,$link,$summary) = @_;
+	my($self,$title,$date,$link,$summary,$guid) = @_;
 	
 	#if( $#{$self->{'entries'}} > $MAX_ENTRIES ) { return 0; } # don't add
 	if( $#{$self->{'entries'}} >= $Settings::MAX_ENTRIES ) {
@@ -163,7 +165,7 @@ sub addEntry {
 	}
 	
 	$date = $self->formatTime($date);
-	my $new_entry = new FeedEntry($title,$date,$link,$summary);
+	my $new_entry = new FeedEntry($title,$date,$link,$summary,$guid);
 	
 	push @{$self->{'entries'}}, $new_entry; # oldest entries first
 	
@@ -195,12 +197,13 @@ sub getHeading {
 	my $retval;
 	
 	$retval .= "<?xml version=\"1.0\" encoding=\"$self->{'encoding'}\"?>\n";
-	$retval .= "<rss version=\"2.0\">\n";
+	$retval .= "<rss version=\"2.0\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
 	$retval .= "<channel>\n";
 	$retval .= "<language>$self->{'lang_code'}</language>\n";
 	$retval .= "<title>$self->{'title'}</title>\n";
 	$retval .= "<link>$self->{'website'}</link>\n";
 	$retval .= "<description>$self->{'description'}</description>\n";
+	$retval .= "<atom:link href=\"$self->{'feed_link'}\" rel=\"self\" type=\"application/rss+xml\" />\n" if $self->{'feed_link'};
 	$retval .= "<webMaster>$self->{'webmaster'}</webMaster>\n" if $self->{'webmaster'};
 	
 	$retval .= "<pubDate>$self->{'pub_date'}</pubDate>\n" if $self->{'pub_date'};
@@ -229,7 +232,7 @@ sub save {
 	my $self = pop @_;
 	
 	open(FEED_FILE,"> $self->{'filename'}") or die "cannot open file $self->{'filename'} to save feed";
-	print FEED_FILE $self->getHeading();
+	print FEED_FILE encode_utf8($self->getHeading());
 	
 	my $i;
 	for($i= $#{$self->{'entries'}}; $i>=0; --$i) {  # start from end - latest first

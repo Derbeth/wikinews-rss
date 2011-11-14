@@ -42,7 +42,7 @@ use strict;
 use utf8;
 
 ############################################################################
-# Section: Settings 
+# Group: Settings
 #   Program settings
 #
 # See also:
@@ -201,7 +201,7 @@ $SIG{__DIE__} = sub { print @_; Status::set_status(3); exit; };
 Status::set_status(0); # started
 
 my $feed = new Feed($Settings::OUTPUT_FILE, $Settings::FEED_TITLE, $Settings::PAGE_URL,
-	$Settings::FEED_DESCRIPTION);
+	$Settings::FEED_DESCRIPTION, $Settings::FEED_LANGUAGE, $Settings::FEED_LINK);
 $feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
 	$Settings::LOGO_WIDTH, $Settings::LOGO_HEIGHT);
 $feed->setCopyright($Settings::FEED_COPYRIGHT);

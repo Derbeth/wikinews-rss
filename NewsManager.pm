@@ -121,7 +121,7 @@ sub saveNews {
 	if( !$news->wasCensored() )
 	{
 		${$self->{'feed'}}->addEntry( $news->{'title'}, $news->getDate(), $news->{'link'},
-			$news->getSummary() );
+			$news->getSummary(), $news->getGuid() );
 	
 		$self->{'feed_changed'} = 1;
 	}

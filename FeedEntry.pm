@@ -17,17 +17,19 @@ package FeedEntry;
 #   $date - date (timestamp)
 #   $link - URL of the news
 #   $summary - summary of the news
+#   $guid - item's GUID (optional)
 sub new {
-    my($classname,$title,$date,$link,$summary) = @_;
-    
+    my($classname,$title,$date,$link,$summary,$guid) = @_;
+
     my $self = {};
     bless($self, "FeedEntry");
-    
+
     $self->{'title'} = $title;
     $self->{'date'} = $date;
     $self->{'link'} = $link;
     $self->{'summary'} = $summary;
-    
+    $self->{'guid'} = $guid;
+
     return $self;
 }
 
@@ -42,9 +44,10 @@ sub new {
 sub toXML {
     my $self = pop @_;
     my $retval = "<item>\n";
-    
+
     $retval .= "  <title>$self->{'title'}</title>\n";
     $retval .= "  <link>$self->{'link'}</link>\n";
+    $retval .= "  <guid isPermaLink=\"false\">$self->{'guid'}</guid>\n" if $self->{'guid'};
     $retval .= "  <pubDate>$self->{'date'}</pubDate>\n";
     $retval .= "  <description>$self->{'summary'}</description>\n";
     $retval .= "</item>\n";

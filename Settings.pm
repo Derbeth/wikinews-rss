@@ -10,7 +10,7 @@ use utf8;
 use Exporter;
 
 use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
-	$DEBUG_MODE $FEED_COPYRIGHT $FEED_DESCRIPTION $FEED_TITLE
+	$DEBUG_MODE $DOMAIN $FEED_COPYRIGHT $FEED_DESCRIPTION $FEED_LANGUAGE $FEED_LINK $FEED_TITLE
 	$HEADLINES_FILE $LINK_PREFIX $LOGO_URL $LOGO_HEIGHT $LOGO_WIDTH
 	$MAX_ENTRIES $MAX_NEW_NEWS $NEWS_ACCEPT_TIME $NEWS_LIST_URL
 	$OUTPUT_FILE $PAGE_URL $PURGE_NEWS_LIST $STATUS_FILE $VERSION);
@@ -68,11 +68,6 @@ $CHECKOUT_PAUSE = 5;
 #   outdated or saved as accepted
 $NEWS_ACCEPT_TIME = 5;
 
-# Const: $DATE_FROM_NEWEST_REVISION
-#   if true, each news item will have the date of its newest revision
-#   if false, each news item will have the date of its oldest revision
-$DATE_FROM_NEWEST_REVISION = 1;
-
 # Var: $ADMIN_MAIL
 #   Mail address used to contact bot administrator
 $ADMIN_MAIL = 'der'.'beth.fora' . '@w'.'p.pl';
@@ -83,9 +78,17 @@ $NEWS_LIST_URL = 'http://pl.wikinews.org/w/index.php?title=Szablon:Najnowsze_wia
 
 $FEED_TITLE = 'Wikinews Polska';
 
+# Const: $FEED_LANGUAGE
+#   ISO 639 code of the language the feed is written in
+$FEED_LANGUAGE = 'pl';
+
 $PAGE_URL = 'http://pl.wikinews.org/';
 
+$DOMAIN = 'pl.wikinews.org';
+
 $LINK_PREFIX = 'http://pl.wikinews.org';
+
+$FEED_LINK = 'http://tools.wikimedia.pl/~derbeth/wikinews.xml';
 
 $FEED_DESCRIPTION = 'Kanał RSS Wikinews Polska - wolnego serwisu informacyjnego tworzonego w technologii wiki (podobnie jak Wikipedia)';
 
@@ -97,6 +100,7 @@ $LOGO_WIDTH = 120;
 
 $LOGO_HEIGHT = 92;
 
+# Const: $PURGE_NEWS_LIST
 # if true, on each check the bot will clear MediaWiki cache for the page
 # containing news list
 $PURGE_NEWS_LIST = 1;
