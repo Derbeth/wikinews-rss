@@ -249,7 +249,8 @@ sub fetchSummary {
 				$summary = substr($summary, 0, $cut);
 			}
 		}
-		$summary =~ s/</&lt;/g;  # quoting HTML tags
+		$summary =~ s/&/&amp;/g;  # quoting HTML
+		$summary =~ s/</&lt;/g;
 		$summary =~ s/>/&gt;/g;
 		
 		$self->{'summary'} = $summary;	
