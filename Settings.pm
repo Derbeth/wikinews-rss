@@ -68,6 +68,11 @@ $CHECKOUT_PAUSE = 5;
 #   outdated or saved as accepted
 $NEWS_ACCEPT_TIME = 5;
 
+# Const: $DATE_FROM_NEWEST_REVISION
+#   if true, each news item will have the date of its newest revision
+#   if false, each news item will have the date of its oldest revision
+$DATE_FROM_NEWEST_REVISION = 1;
+
 # Var: $ADMIN_MAIL
 #   Mail address used to contact bot administrator
 $ADMIN_MAIL = 'der'.'beth.fora' . '@w'.'p.pl';

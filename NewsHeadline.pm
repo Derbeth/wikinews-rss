@@ -57,21 +57,19 @@ my @VULGARISMS = ('chuj', 'kutas', 'cipa', 'kurwa', 'kurwy', 'żydy', 'gówno',
 #   reference to new <NewsHeadline> object
 sub new {
 	my ($classname,$title,$link,$time) = @_;
-	
+
 	#if( ! defined $title || ! defined $link ) { die "two parameters expected"; }
 	if( ! defined $time ) { $time = time; }
-	
+
 	my $self = {};
    bless($self, "NewsHeadline");
-   
+
    $self->{'title'} = $title;
    $self->{'link'} = $link;
    $self->{'time'} = $time;
-   $self->{'metadata_read'} = 0;
    $self->{'summary'} = '';
    #printf("title: '%s' (%s)\n", $self->{'title'}, $title); DEBUG
-   
-   
+
    return $self;
 }
 
@@ -89,47 +87,33 @@ sub getAgeMinutes {
 	return $time_diff / 60;
 }
 
-sub _readMetadata {
+# returns date in format like "Mon, 12 Dec 2005 12:45 CET"
+sub getDate {
 	my $self = pop @_;
 
-	if (! $self->{'metadata_read'}) {
-		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=info&titles=".uri_escape_utf8($self->{'title'});
+	if (! $self->{'date_read'}) {
+		my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
+		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1&titles=".uri_escape_utf8($self->{'title'});
 		my $json = Derbeth::Web::strona_z_sieci($url);
-		my $success = 0;
-		if ($json =~ m!"touched" *: *"([^"]+)"!) {
+		if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
 			my $timestamp = $1;
 			if ($timestamp =~ /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z$/) {
 				my $month = $2 - 1;
 				# we use timegm() instead of timelocal() because dates from
 				# JSON are in UTC (time zone is Z)
 				$self->{'time'} = timegm($6,$5,$4,$3,$month,$1);
+				if ($Settings::DEBUG_MODE) {
+					print 'read time for ', encode_utf8($self->{'title'}), ': ',
+						scalar(CORE::localtime($self->{'time'})), "\n";
+				}
 			} elsif ($Settings::DEBUG_MODE) {
 				print "Cannot parse date: $timestamp\n";
 			}
-			$success = 1;
-		}
-
-		if ($json =~ m!"pageid" *: *(\d+)!) {
-			# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
-			my $pageid = $1;
-			my $domain = $Settings::DOMAIN;
-			my $year = localtime->year() + 1900;
-			$self->{'guid'} = "tag:$domain,$year:$pageid";
-			$success = 1;
-		}
-
-		if (! $success && $Settings::DEBUG_MODE) {
+		} elsif ($Settings::DEBUG_MODE) {
 			print "Wrong API response for $url: $json\n";
 		}
-		$self->{'metadata_read'} = 1;
+		$self->{'date_read'} = 1;
 	}
-}
-
-# returns date in format like "Mon, 12 Dec 2005 12:45 CET"
-sub getDate {
-	my $self = pop @_;
-
-	$self->_readMetadata();
 	return $self->{'time'};
 }
 
@@ -137,7 +121,20 @@ sub getDate {
 sub getGuid {
 	my $self = pop @_;
 
-	$self->_readMetadata();
+	if (! $self->{'guid_read'}) {
+		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=info&titles=".uri_escape_utf8($self->{'title'});
+		my $json = Derbeth::Web::strona_z_sieci($url);
+		if ($json =~ m!"pageid" *: *(\d+)!) {
+			# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
+			my $pageid = $1;
+			my $domain = $Settings::DOMAIN;
+			my $year = localtime->year() + 1900;
+			$self->{'guid'} = "tag:$domain,$year:$pageid";
+		} elsif ($Settings::DEBUG_MODE) {
+			print "Wrong API response for $url: $json\n";
+		}
+		$self->{'guid_read'} = 1;
+	}
 	return $self->{'guid'};
 }
 
