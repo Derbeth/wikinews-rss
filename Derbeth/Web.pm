@@ -7,6 +7,7 @@ package Derbeth::Web;
 @EXPORT = ('pobierz_strone','ustaw_online');
 
 use LWP;
+use Encode;
 use HTML::Form;
 use HTTP::Daemon;
 use HTTP::Status;
@@ -74,7 +75,11 @@ sub czy_cacheowac {
 #   sciaga strone z internetu (funkcja wewnetrzna)
 sub strona_z_sieci {
 	my $adres = shift @_;
-	my $ua = LWP::UserAgent->new;
+	if ($adres =~ m!file://!) {
+		return strona_z_pliku($');
+	}
+
+	my $ua = LWP::UserAgent->new('requests_redirectable' => ['GET', 'HEAD', 'POST']);
 	$ua->agent($USER_AGENT);
 	my $response = ( $DOWNLOAD_METHOD eq 'get' ) ? $ua->get($adres) : $ua->post($adres);
 	if( ! $response->is_success ) {
@@ -82,7 +87,10 @@ sub strona_z_sieci {
 		if( $response->is_error ) {
 			$err_msg = status_message( $response->code );
 		}
-			print "nie udalo sie pobrac strony $adres. komunikat: '$err_msg'\n";
+		if ( $response->is_redirect) {
+			$err_msg = 'redirect';
+		}
+		print "nie udalo sie pobrac strony $adres. komunikat: '$err_msg'\n";
 		return '';
 	}
 
@@ -116,7 +124,7 @@ sub strona_z_pliku {
    my $text = '';
    open(FILE,$plik) or die "nie udalo sie otworzyc strony z pliku $plik";
    my $c = <FILE>;
-   while($c) { $text .= $c; $c=<FILE>; }
+   while($c) { $text .= $c; $c=decode_utf8(<FILE>); }
    return $text;
 }
 

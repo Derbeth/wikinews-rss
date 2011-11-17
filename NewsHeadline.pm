@@ -21,6 +21,7 @@ use English;
 use Time::Local;
 use Time::localtime;
 use URI::Escape qw/uri_escape_utf8/;
+use Encode;
 
 ############################################################################
 # Group: Settings 
@@ -118,7 +119,7 @@ sub _readMetadata {
 		}
 
 		if (! $success && $Settings::DEBUG_MODE) {
-			print "Wrong API response: $json\n";
+			print "Wrong API response for $url: $json\n";
 		}
 		$self->{'metadata_read'} = 1;
 	}
@@ -197,8 +198,20 @@ sub fetchSummary {
 	my $self = pop @_;
 	
 	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($self->{'link'});
-	#my $page = $self->{'summary'}; #DEBUG ONLY
-	
+
+	my $summary = $self->extractSummary($page);
+	if ($summary) {
+		$self->{'summary'} = $summary;
+	} else { # error
+		print "Could not find paragraph in page content of ", encode_utf8($self->{'title'}), "\n";
+		$self->{'summary'} = $self->{'title'};
+		return $self->{'summary'};
+	}
+}
+
+sub extractSummary {
+	my ($self, $page) = @_;
+	my $summary;
 	$page =~ s/<table.*?<\/table>//gs; # remove tables
 	$page =~ s/ class="extiw"//g; # remove unneccessary CSS class
 	if ($page =~ /200\d<\/b><br \/><\/p>/) {
@@ -206,7 +219,7 @@ sub fetchSummary {
 	}
 
 	if( $page =~ /<p>(.+?)<\/p>/si ) { # find first paragraph
-		my $summary = $1;
+		$summary = $1;
 		$page = $POSTMATCH;
 		
 		
@@ -234,33 +247,23 @@ sub fetchSummary {
 		# remove notes
 		$summary =~ s!<sup id="cite_ref[^>]+><a[^>]+>[^<>]+</a></sup>!!;
 
-		if( $summary eq '' ) { # on error set title as summary
-			#die "error";
-			$self->{'summary'} = $self->{'title'}; return $self->{'summary'};
-		}
-		
-		$summary = fixUrls($summary);
-		
-		if( length $summary > $MAX_SUMMARY_LEN ) { # cutting off if too long
-			my $cut;
-			$summary = substr($summary,0,$MAX_SUMMARY_LEN);
-			if( ($cut=rindex($summary, '<a href=')) > rindex($summary, '</a>') )
-			{
-				$summary = substr($summary, 0, $cut);
+		if( $summary) {
+			$summary = fixUrls($summary);
+			
+			if( length $summary > $MAX_SUMMARY_LEN ) { # cutting off if too long
+				my $cut;
+				$summary = substr($summary,0,$MAX_SUMMARY_LEN);
+				if( ($cut=rindex($summary, '<a href=')) > rindex($summary, '</a>') )
+				{
+					$summary = substr($summary, 0, $cut);
+				}
 			}
+			$summary =~ s/&/&amp;/g;  # quoting HTML
+			$summary =~ s/</&lt;/g;
+			$summary =~ s/>/&gt;/g;
 		}
-		$summary =~ s/&/&amp;/g;  # quoting HTML
-		$summary =~ s/</&lt;/g;
-		$summary =~ s/>/&gt;/g;
-		
-		$self->{'summary'} = $summary;	
-
-		
-	} else { # error
-		print "Could not find paragraph in page content\n"; #DEBUG
-		print "missing: $self->{'title'}\n";
-		$self->{'summary'} = $self->{'title'}; return $self->{'summary'};
 	}
+	return $summary;
 }
 
 # Function: wasCensored
