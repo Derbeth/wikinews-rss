@@ -212,8 +212,10 @@ sub fetchSummary {
 sub extractSummary {
 	my ($self, $page) = @_;
 	my $summary;
+	$page =~ s/ {2,}/ /g;
 	$page =~ s/<table.*?<\/table>//gs; # remove tables
-	$page =~ s/ class="extiw"//g; # remove unneccessary CSS class
+	#$page =~ s/^.*<\/table>//s; # remove rest of the tables
+	$page =~ s/ class="[^<>"]+"//g; # remove unneccessary CSS class
 	if ($page =~ /200\d<\/b><br \/><\/p>/) {
 		$page = $POSTMATCH;
 	}
@@ -223,8 +225,7 @@ sub extractSummary {
 		$page = $POSTMATCH;
 		
 		
-		# $summary =~ /200\d<\/b><br \/>/si
-		while( $summary =~ /^<b>(.*?)<\/b>/si || $summary =~ /^(&#160;)?(<br.*?>)/si
+		while( $summary =~ /^(&#160;)?(<br.*?>)/si
 		|| $summary =~ /^<a name=.+?<\/a>/si || $summary =~ /^<script.+?<\/script>/si ) {
 		# ignore part with date, newline, anchor or script
 			if( $' eq '' ) { # look for next paragraph
@@ -244,10 +245,15 @@ sub extractSummary {
 			}
 		}
 
+		$summary =~ s/^\s*<b>(.*)<\/b>\s*$/$1/si;
+
 		# remove notes
 		$summary =~ s!<sup id="cite_ref[^>]+><a[^>]+>[^<>]+</a></sup>!!;
 
 		if( $summary) {
+			# remove link titles
+			$summary =~ s/(<a[^<>]+)title="[^<>"]*"/$1/g;
+			$summary =~ s/ >/>/g;
 			$summary = fixUrls($summary);
 			
 			if( length $summary > $MAX_SUMMARY_LEN ) { # cutting off if too long
@@ -261,6 +267,8 @@ sub extractSummary {
 			$summary =~ s/&/&amp;/g;  # quoting HTML
 			$summary =~ s/</&lt;/g;
 			$summary =~ s/>/&gt;/g;
+
+			$summary =~ s/^\s+|\s+$//s;
 		}
 	}
 	return $summary;
