@@ -17,7 +17,7 @@ use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
 
 # Const: $VERSION
 #   program version
-$VERSION = '0.5.2';
+$VERSION = '0.6.0';
 
 # Const: $DEBUG_MODE
 #   setting to true causes more diagnostic messages to be printed
