@@ -38,7 +38,7 @@ my $MAX_SUMMARY_LEN = 2000;
 #   You can use regexp here.
 my @VULGARISMS = ('chuj', 'kutas', 'cipa', 'kurwa', 'kurwy', 'żydy', 'gówno',
 	'jeban', 'jebać', 'pierdol', 'pierdal', 'pedał',
-	'!!!!', 'wheeee', 
+	'!!!!', 'wheeee',
 	'shit', 'fuck', 'cock', 'nigger', 'queer', 'bitch');
 
 ############################################################################
@@ -225,9 +225,10 @@ sub extractSummary {
 		
 		
 		while( $summary =~ /^(&#160;)?(<br.*?>)/si
-		|| $summary =~ /^<a name=.+?<\/a>/si || $summary =~ /^<script.+?<\/script>/si ) {
+		|| $summary =~ /^<a name=.+?<\/a>/si || $summary =~ /^<script.+?<\/script>/si
+		|| $summary =~ /^<span id="coordinates"/ ) {
 		# ignore part with date, newline, anchor or script
-			if( $' eq '' ) { # look for next paragraph
+			if( $' eq '' || $& =~ /coordinates/) { # look for next paragraph
 				if( $page =~ /<p>(.+?)<\/p>/si ) {
 					$summary = $1;
 					$page = $';
