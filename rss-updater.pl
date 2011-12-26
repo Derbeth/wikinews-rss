@@ -37,6 +37,7 @@ use NewsManager;
 use Feed;
 use Settings;
 use Status;
+#use DebugSettings;
 
 use strict;
 use utf8;
@@ -207,7 +208,9 @@ $feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
 $feed->setCopyright($Settings::FEED_COPYRIGHT);
 my $news_manager = new NewsManager($feed);
 
-print "rss-updater version $Settings::VERSION running. Hit Control+C to exit.\n\n";
+print "rss-updater version $Settings::VERSION running.\n";
+print "RSS channel should appear after about ", (2*$Settings::CHECKOUT_PAUSE), " minutes.\n";
+print "Hit Control+C to exit.\n\n";
 
 while( 1 ) {
 	my $news_list = fetch_news_list();

@@ -172,6 +172,8 @@ sub getSummary {
 #   changes relative url to absolute one
 sub fixUrl {
 	my ($url) = @_;
+	return $url if ($url =~ /^http/);
+	return "http:$url" if ($url =~ m!^//!);
 	return $Settings::LINK_PREFIX.$url;
 }
 
