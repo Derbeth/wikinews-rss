@@ -28,7 +28,7 @@ sub set_status {
 	my $desc;
 	
 	unless( open(STATUS, "> $Settings::STATUS_FILE") ) {
-		print "cannot open status file for writing\n";
+		print "cannot open status file for writing: $!\n";
 		return;
 	}
 	print STATUS <<HTML;

@@ -75,7 +75,7 @@ $DATE_FROM_NEWEST_REVISION = 1;
 
 # Var: $ADMIN_MAIL
 #   Mail address used to contact bot administrator
-$ADMIN_MAIL = 'der'.'beth.fora' . '@w'.'p.pl';
+$ADMIN_MAIL = 'der'.'beth' . '@in'.'teria.pl';
 
 # Const: $NEWS_LIST_URL
 #   URL to list of news

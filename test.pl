@@ -20,9 +20,6 @@ my $news = new NewsHeadline('tit','link',time);
 $news->{'link'} =
 'http://pl.wikinews.org/wiki/Warszawa:_Gesty_papieża_wobec_wiernych';
 
-#$news->{'summary'} = $retval;
-#$news->{title} = 'Fuckin queers fuck off!';
-
 $news->fetchSummary();
 print $news->getSummary();
-#print "\nVULGAR!\n" if $news->wasCensored();
+

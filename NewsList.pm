@@ -192,7 +192,5 @@ sub count {
 	
 	return( $#{$self->{'news'}} +1);
 }
-		
-	
 
 1;

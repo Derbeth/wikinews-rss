@@ -36,10 +36,11 @@ my $MAX_SUMMARY_LEN = 2000;
 #   it won't be added to RSS.
 #
 #   You can use regexp here.
-my @VULGARISMS = ('chuj', 'kutas', 'cipa', 'kurwa', 'kurwy', 'żydy', 'gówno',
-	'jeban', 'jebać', 'pierdol', 'pierdal', 'pedał',
-	'!!!!', 'wheeee',
-	'shit', 'fuck', 'cock', 'nigger', 'queer', 'bitch');
+my @VULGARISMS = qw@chuj kutas cipa kurwa kurwy żydy gówno
+	dupczy cwel
+	jeban jebać pierdol pierdal pedał
+	!!!! wheeee
+	shit fuck cock nigger queer bitch@;
 
 ############################################################################
 # Group: Functions
