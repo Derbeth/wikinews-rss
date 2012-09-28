@@ -88,7 +88,7 @@ sub getAgeMinutes {
 	return $time_diff / 60;
 }
 
-# returns date in format like "Mon, 12 Dec 2005 12:45 CET"
+# returns date as the numer of seconds since epoch (like time() function)
 sub getDate {
 	my $self = pop @_;
 

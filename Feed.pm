@@ -111,15 +111,6 @@ sub toString {
 	return "Feed"; # TEMP
 }
 
-# Function: getTimezone
-#   returns feed timezone eg. '+0100'
-#
-# Important:
-#   returns hard-coded data
-sub getTimezone {
-    return "+0100"; # TEMP
-}
-
 # Function: formatTime
 #   returns time formatted properly
 #
@@ -133,13 +124,13 @@ sub formatTime {
 	unless( defined($timestamp) ) { die "formatTime: must pass a parameter"; }
 	my $retval;
 	
-	my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($timestamp);
+	my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime($timestamp);
 	my $dayname = qw/Sun Mon Tue Wed Thu Fri Sat/[$wday];
 	my $monthname = qw/Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec/[$mon];
 	$year += 1900;
 	
-	$retval = sprintf "$dayname, %02d $monthname $year %02d:%02d:%02d %s",
-	$mday,$hour,$min,$sec, $self->getTimezone();
+	$retval = sprintf("$dayname, %02d $monthname $year %02d:%02d:%02d %s",
+	$mday,$hour,$min,$sec, 'GMT');
 	return $retval;
 }
 
