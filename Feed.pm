@@ -8,6 +8,7 @@ package Feed;
 use FeedEntry;
 use Settings;
 
+use Carp;
 use Encode;
 
 use strict;
@@ -121,7 +122,7 @@ sub toString {
 #   string like 'Sun, 19 May 2002 15:21:36 GMT'
 sub formatTime {
 	my($self, $timestamp) = @_;
-	unless( defined($timestamp) ) { die "formatTime: must pass a parameter"; }
+	unless( defined($timestamp) ) { confess "formatTime: must pass a parameter"; }
 	my $retval;
 	
 	my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime($timestamp);
@@ -161,6 +162,19 @@ sub addEntry {
 	push @{$self->{'entries'}}, $new_entry; # oldest entries first
 	
 	#print "add entry $title - $link - $date\n" #DEBUG;
+}
+
+sub replaceEntry {
+	my($self,$title,$date,$link,$summary,$guid) = @_;
+	for(my $i=0; $i<=$#{$self->{'entries'}}; ++$i)
+	{
+		if( $self->{'entries'}[$i]->{'title'} eq $title )
+		{ # replacing
+			$self->{'entries'}[$i] = new FeedEntry($title,$date,$link,$summary,$guid);
+			return 1;
+		}
+	}
+	return 0;
 }
 
 sub removeEntry {

@@ -79,11 +79,16 @@ sub processNewNews {
 	}
 	
 	my @to_remove; # news to be removed from feed
+	my @to_refresh;
 	$iterator = $self->{'saved'}->getIterator();
 	while( $iterator->hasNext() == 1 )
 	{
 		my $news = $iterator->getNext();
-		if( !$new->contains($news) ) { push @to_remove, $news; }
+		if( !$new->contains($news) ) {
+			push @to_remove, $news;
+		} else {
+			push @to_refresh, $news;
+		}
 	}
 	foreach my $news (@to_remove) {
 		$self->removeNews($news);
@@ -93,6 +98,10 @@ sub processNewNews {
 	
 	if( $self->{'feed_changed'} == 1 )
 	{
+		# to minimize number of requests to server, we refresh only if there are changes
+		foreach my $news (@to_refresh) {
+			$self->refreshNews($news);
+		}
 		$self->{'last_saved'} = scalar(localtime());
 		${$self->{'feed'}}->save();
 	}
@@ -120,11 +129,16 @@ sub saveNews {
 	
 	if( !$news->wasCensored() )
 	{
-		${$self->{'feed'}}->addEntry( $news->{'title'}, $news->getDate(), $news->{'link'},
-			$news->getSummary(), $news->getGuid() );
+		${$self->{'feed'}}->addEntry( $self->newsToFeed($news) );
 	
 		$self->{'feed_changed'} = 1;
 	}
+}
+
+sub newsToFeed {
+	my($self, $news) = @_;
+
+	($news->{'title'}, $news->getDate(), $news->{'link'}, $news->getSummary(), $news->getGuid())
 }
 
 sub addPending {
@@ -139,6 +153,20 @@ sub removeNews {
 	$self->{'saved'}->remove($news);
 	${$self->{'feed'}}->removeEntry($news->{'title'});
 	$self->{'feed_changed'} = 1;
+}
+
+# checks if the news was changed on server since it was saved here, and
+# marks it for refresh if needed
+sub refreshNews {
+	my($self,$news) = @_;
+	if ($Settings::DEBUG_MODE) {
+		print "Checking if needs refresh: ", encode_utf8($news->toString(1)), "\n";
+	}
+	if ($news->refresh()) {
+		print "Refreshing news: ", encode_utf8($news->toString(1)), "\n";
+		${$self->{'feed'}}->replaceEntry( $self->newsToFeed($news) );
+		$self->{'feed_changed'} = 1;
+	}
 }
 
 1;

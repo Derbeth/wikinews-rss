@@ -134,9 +134,27 @@ sub getGuid {
 		} elsif ($Settings::DEBUG_MODE) {
 			print "Wrong API response for $url: $json\n";
 		}
+		if ($json =~ m!"lastrevid" *: *(\d+)!) {
+			$self->{'lastrevid'} = $1;
+		}
 		$self->{'guid_read'} = 1;
 	}
 	return $self->{'guid'};
+}
+
+sub refresh {
+	my $self = pop @_;
+	my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=info&titles=".uri_escape_utf8($self->{'title'});
+	my $json = Derbeth::Web::strona_z_sieci($url);
+	if ($json =~ m!"lastrevid" *: *(\d+)!) {
+		my $newLastRevId = $1;
+		if (!$self->{'lastrevid'} || $self->{'lastrevid'} < $newLastRevId) {
+			$self->{'lastrevid'} = $newLastRevId;
+			$self->fetchSummary();
+			return 1;
+		}
+	}
+	return 0;
 }
 
 # Function: toString
