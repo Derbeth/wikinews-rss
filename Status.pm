@@ -5,7 +5,7 @@ require Exporter;
 use utf8;
 use strict;
 
-eval "use Mail::Sendmail; 1";
+my $using_sendmail = eval "use Mail::Sendmail; 1";
 use Sys::Hostname;
 
 use Settings;
@@ -83,7 +83,12 @@ sub notify_admin {
 		Subject => 'RSS bot dead',
 		Message => "Wikinews RSS bot is dead.\n",
 	);
+	unless ($using_sendmail) {
+		print STDERR "Cannot send mail: Perl module Mail::Sendmail not installed\n";
+		return 0;
+	}
 	sendmail(%mail) || print STDERR "Cannot send mail: $Mail::Sendmail::error\n";
+	1;
 }
 
 1;
