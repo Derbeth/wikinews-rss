@@ -5,6 +5,9 @@ require Exporter;
 use utf8;
 use strict;
 
+eval "use Mail::Sendmail; 1";
+use Sys::Hostname;
+
 use Settings;
 
 our @ISA = qw/Exporter/;
@@ -73,15 +76,14 @@ HTML
 # Function: notify_admin
 #   sends and e-mail notifying administrator of bot crash
 sub notify_admin {
-	open(MAIL, "|/usr/lib/sendmail -t");
-
-	print MAIL "To: $Settings::ADMIN_MAIL\n";
-	print MAIL "From: $ENV{USER}\n";
-	print MAIL "Subject: RSS bot dead\n";
-
-	print MAIL "Wikinews RSS bot is dead.\n";
-
-	close (MAIL);
+	my $hostname = hostname;
+	my %mail = (To => $Settings::ADMIN_MAIL,
+		From => "Wikinews RSS Bot $ENV{USER}\@$hostname",
+		'Content-Type' => 'text/plain; charset=utf-8',
+		Subject => 'RSS bot dead',
+		Message => "Wikinews RSS bot is dead.\n",
+	);
+	sendmail(%mail) || print STDERR "Cannot send mail: $Mail::Sendmail::error\n";
 }
 
 1;

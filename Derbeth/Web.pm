@@ -39,7 +39,7 @@ my $input_file = 'in.txt';
 
 my $cache_dir = 'Derbeth/cache/';
 
-my $USER_AGENT = "DerbethBot/beta (Windows XP) Opera rulez";
+my $USER_AGENT = "DerbethBot for Wikinews RSS";
 
 # Bool: $DOWNLOAD_METHOD
 #   get/post

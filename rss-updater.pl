@@ -89,13 +89,15 @@ my $fetch_failures = 0;
 #   function counts number of cases where news list cannot be fetched from
 #   server. If it exceeds <$MAX_FETCH_FAILURES>, script dies.
 sub fetch_news_list {
-	#my $input_file = 'latestnews.htm';
-	
-	#open(FILE,$input_file) or die "cannot open file $input_file";
-	#my $retval;
-   #my $c = <FILE>;
-   #while($c) { $retval .= $c; $c=<FILE>; }
-   #return get_content($retval);
+	if ($Settings::READ_LIST_FROM_FILE) {
+		my $input_file = $Settings::HEADLINES_FILE;
+		print "Reading new list from file $input_file\n";
+		open(FILE,$input_file) or die "cannot read news list: $!";
+		my @lines = <FILE>;
+		close(FILE);
+		my $content = join('', @lines);
+		return decode_utf8($content);
+	}
 	my $error_msg = '';
 
 	Derbeth::Web::purge_page($Settings::NEWS_LIST_URL) if $Settings::PURGE_NEWS_LIST;
@@ -115,6 +117,9 @@ sub fetch_news_list {
 		return '';
 	}
 
+	open(OUT, ">$Settings::HEADLINES_FILE");
+	print OUT encode_utf8($page);
+	close(OUT);
 	return $page;
 }
 
@@ -133,9 +138,6 @@ sub retrieve_news_headlines {
 	my $content = pop @_;
 	my $retval = new NewsList;
 	
-	open(OUT, ">$Settings::HEADLINES_FILE");
-	print OUT encode_utf8($content);
-	close(OUT);
 	if( $content eq '' ) { return $retval; }
 	if ($content =~ /<!-- *(bodytext|bodycontent|start content) *-->/) {
 		$content = $';

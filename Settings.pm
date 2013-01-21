@@ -11,13 +11,13 @@ use Exporter;
 
 use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
 	$DEBUG_MODE $DOMAIN $FEED_COPYRIGHT $FEED_DESCRIPTION $FEED_LANGUAGE $FEED_LINK $FEED_TITLE
-	$HEADLINES_FILE $LINK_PREFIX $LOGO_URL $LOGO_HEIGHT $LOGO_WIDTH
+	$READ_LIST_FROM_FILE $HEADLINES_FILE $LINK_PREFIX $LOGO_URL $LOGO_HEIGHT $LOGO_WIDTH
 	$MAX_ENTRIES $MAX_NEW_NEWS $NEWS_ACCEPT_TIME $NEWS_LIST_URL
 	$OUTPUT_FILE $PAGE_URL $PURGE_NEWS_LIST $STATUS_FILE $VERSION);
 
 # Const: $VERSION
 #   program version
-$VERSION = '0.6.2';
+$VERSION = '0.7.0';
 
 # Const: $DEBUG_MODE
 #   setting to true causes more diagnostic messages to be printed
@@ -36,6 +36,10 @@ $STATUS_FILE = '../public_html/status.html';
 # Const: $HEADLINES_FILE
 #   path to file where the HTML document with headline list is saved
 $HEADLINES_FILE = 'last_headlines.xml';
+
+# Const: $READ_LIST_FROM_FILE
+#   if true, news list is read from local file $HEADLINES_FILE
+$READ_LIST_FROM_FILE = 0;
 
 # Const: $MAX_ENTRIES
 #   maximal number of entries in feed
