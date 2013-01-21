@@ -13,6 +13,10 @@ use Settings;
 our @ISA = qw/Exporter/;
 our @EXPORT = qw/set_status/;
 
+unless ($using_sendmail) {
+	print STDERR "Perl module Mail::Sendmail not installed - notification mails won't be sent\n";
+}
+
 # Function: set_status
 #   set status: running or failure, saves it to a HTML file
 #
