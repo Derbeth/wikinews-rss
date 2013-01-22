@@ -82,7 +82,7 @@ HTML
 sub notify_admin {
 	my $hostname = hostname;
 	my %mail = (To => $Settings::ADMIN_MAIL,
-		From => "Wikinews RSS Bot $ENV{USER}\@$hostname",
+		From => "\"Wikinews RSS Bot\" <$ENV{USER}\@$hostname>",
 		'Content-Type' => 'text/plain; charset=utf-8',
 		Subject => 'RSS bot dead',
 		Message => "Wikinews RSS bot is dead.\n",
