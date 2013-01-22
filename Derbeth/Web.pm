@@ -39,6 +39,8 @@ my $input_file = 'in.txt';
 
 my $cache_dir = 'Derbeth/cache/';
 
+my $DEBUG = 0;
+
 my $USER_AGENT = "DerbethBot for Wikinews RSS";
 
 # Bool: $DOWNLOAD_METHOD
@@ -53,6 +55,7 @@ sub set {
 	my($key,$val) = @_;
 	if( $key eq 'USER_AGENT' ) { $USER_AGENT = $val; }
 	if( $key eq 'DOWNLOAD_METHOD' ) { $DOWNLOAD_METHOD = $val; }
+	if( $key eq 'DEBUG' ) { $DEBUG = $val; }
 }
 
 sub skrot_adresu {
@@ -106,7 +109,7 @@ sub purge_page {
 	@forms = grep $_->attr("class") && $_->attr("class") eq "visualClear", @forms;
 	my $form = shift @forms;
 	unless($form) {
-		print "No purge form ", scalar(localtime()), "\n";
+		print "No purge form ", scalar(localtime()), "\n" if $DEBUG;
 		return;
 	}
 #     $form->dump();

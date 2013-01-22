@@ -65,7 +65,7 @@ my $MAX_FETCH_FAILURES = 20;
 my $ERROR_CLEAR_DELAY=20;
 
 Derbeth::Web::set('DOWNLOAD_METHOD','post');
-Derbeth::Web::set('USER_AGENT','DerbethBot/beta (Linux) Opera rulez');
+Derbeth::Web::set('DEBUG',$Settings::DEBUG_MODE);
 
 
 ############################################################################
@@ -214,6 +214,7 @@ print "rss-updater version $Settings::VERSION running.\n";
 print "RSS channel should appear after about ", (2*$Settings::CHECKOUT_PAUSE), " minutes.\n";
 print "Hit Control+C to exit.\n\n";
 
+sleep 3;
 while( 1 ) {
 	my $news_list = fetch_news_list();
 	
