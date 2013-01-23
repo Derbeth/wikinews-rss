@@ -47,7 +47,11 @@ my @VULGARISMS = qw@chuj kutas cipa kurwa kurwy żydy gówno
 ############################################################################
 
 # Constructor: new
-#   creates new news headline and sets its time to current time
+#   creates new news headline and sets its time to current time.
+#
+#   By default a newly created news headline contains only title,
+#   additional details (link, summary, date, guid) are filled when
+#   <fetchDetails() is called.
 #
 # Parameters:
 #   $title - title of news
@@ -69,6 +73,7 @@ sub new {
    $self->{'link'} = $link;
    $self->{'time'} = $time;
    $self->{'summary'} = '';
+   $self->{'api_base_url'} = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&titles=".uri_escape_utf8($self->{'title'});
    #printf("title: '%s' (%s)\n", $self->{'title'}, $title); DEBUG
 
    return $self;
@@ -88,64 +93,80 @@ sub getAgeMinutes {
 	return $time_diff / 60;
 }
 
-# returns date as the numer of seconds since epoch (like time() function)
-sub getDate {
+sub fetchDetails {
 	my $self = pop @_;
 
-	if (! $self->{'date_read'}) {
-		my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
-		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1&titles=".uri_escape_utf8($self->{'title'});
-		my $json = Derbeth::Web::strona_z_sieci($url);
-		if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
-			my $timestamp = $1;
-			if ($timestamp =~ /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z$/) {
-				my $month = $2 - 1;
-				# we use timegm() instead of timelocal() because dates from
-				# JSON are in UTC (time zone is Z)
-				$self->{'time'} = timegm($6,$5,$4,$3,$month,$1);
-				if ($Settings::DEBUG_MODE) {
-					print 'read time for ', encode_utf8($self->{'title'}), ': ',
-						scalar(CORE::localtime($self->{'time'})), "\n";
-				}
-			} elsif ($Settings::DEBUG_MODE) {
-				print "Cannot parse date: $timestamp\n";
-			}
-		} elsif ($Settings::DEBUG_MODE) {
-			print "Wrong API response for $url: $json\n";
-		}
-		$self->{'date_read'} = 1;
-	}
-	return $self->{'time'};
+	my $info_url = $self->{'api_base_url'} . "&prop=info";
+	my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
+	my $revisions_url = $self->{'api_base_url'} . "&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1";
+
+	my $info_json = $self->queryApi($info_url);
+	my $revisions_json = $self->queryApi($revisions_url);
+
+	$self->parseInfoResponse($info_json);
+	$self->parseRevisionsResponse($revisions_json);
+
+	$self->fetchSummary();
 }
 
-# returns date in format like "Mon, 12 Dec 2005 12:45 CET"
-sub getGuid {
-	my $self = pop @_;
+sub queryApi {
+	my ($self, $url) = @_;
 
-	if (! $self->{'guid_read'}) {
-		my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=info&titles=".uri_escape_utf8($self->{'title'});
-		my $json = Derbeth::Web::strona_z_sieci($url);
-		if ($json =~ m!"pageid" *: *(\d+)!) {
-			# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
-			my $pageid = $1;
-			my $domain = $Settings::DOMAIN;
-			my $year = localtime->year() + 1900;
-			$self->{'guid'} = "tag:$domain,$year:$pageid";
-		} elsif ($Settings::DEBUG_MODE) {
-			print "Wrong API response for $url: $json\n";
-		}
-		if ($json =~ m!"lastrevid" *: *(\d+)!) {
-			$self->{'lastrevid'} = $1;
-		}
-		$self->{'guid_read'} = 1;
+	my $response = Derbeth::Web::strona_z_sieci($url);
+	if ($response !~ /"query"/) {
+		print "Wrong API response for $url: $response\n" if $Settings::DEBUG_MODE;
+		return '';
 	}
-	return $self->{'guid'};
+	return $response;
+}
+
+sub parseInfoResponse {
+	my ($self, $json) = @_;
+	if ($json =~ m!"pageid" *: *(\d+)!) {
+		# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
+		my $pageid = $1;
+		my $domain = $Settings::DOMAIN;
+		my $year = localtime->year() + 1900;
+		$self->{'guid'} = "tag:$domain,$year:$pageid";
+	}
+	if ($json =~ m!"lastrevid" *: *(\d+)!) {
+		$self->{'lastrevid'} = $1;
+	}
+}
+
+sub parseRevisionsResponse {
+	my ($self, $json) = @_;
+	if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
+		my $timestamp = $1;
+		my $parsed = $self->timestampToTime($timestamp);
+		if ($parsed) {
+			$self->{'time'} = $parsed;
+			if ($Settings::DEBUG_MODE) {
+				print 'read time for ', encode_utf8($self->{'title'}), ': ',
+					scalar(CORE::localtime($self->{'time'})), "\n";
+			}
+		} elsif ($Settings::DEBUG_MODE) {
+			print "Cannot parse date: $timestamp\n";
+		}
+	}
+}
+
+sub timestampToTime {
+	my ($self, $timestamp) = @_;
+	my $result = 0;
+	if ($timestamp =~ /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)Z$/) {
+		my $month = $2 - 1;
+		# we use timegm() instead of timelocal() because dates from
+		# JSON are in UTC (time zone is Z)
+		$result = timegm($6,$5,$4,$3,$month,$1);
+	}
+	return $result;
 }
 
 sub refresh {
 	my $self = pop @_;
-	my $url = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&prop=info&titles=".uri_escape_utf8($self->{'title'});
-	my $json = Derbeth::Web::strona_z_sieci($url);
+	my $info_url = $self->{'api_base_url'} . "&prop=info";
+	my $json = Derbeth::Web::strona_z_sieci($info_url);
 	if ($json =~ m!"lastrevid" *: *(\d+)!) {
 		my $newLastRevId = $1;
 		if (!$self->{'lastrevid'} || $self->{'lastrevid'} < $newLastRevId) {
@@ -176,15 +197,6 @@ sub equals {
 	my($self, $other) = @_;
 	if( ! defined $other->{'title'} ) { die "NewsHeadline::equals: wrong comparison"; }
 	return( $self->{'title'} eq $other->{'title'} );
-}
-
-# Function: getSummary
-#  returns news summary, retrieves news summary from website if it hasn't been done
-sub getSummary {
-	my $self = pop @_;
-	
-	if( $self->{'summary'} eq '' ) { fetchSummary(); } # comment this on debug
-	return $self->{'summary'};
 }
 
 # Function: fixUrl

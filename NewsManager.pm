@@ -125,7 +125,7 @@ sub saveNews {
 	$self->{'pending'}->remove($news);
 	$self->{'saved'}->add($news);
 	
-	$news->fetchSummary();
+	$news->fetchDetails();
 	
 	if( !$news->wasCensored() )
 	{
@@ -138,7 +138,7 @@ sub saveNews {
 sub newsToFeed {
 	my($self, $news) = @_;
 
-	($news->{'title'}, $news->getDate(), $news->{'link'}, $news->getSummary(), $news->getGuid())
+	($news->{'title'}, $news->{'time'}, $news->{'link'}, $news->{'summary'}, $news->{'guid'})
 }
 
 sub addPending {
