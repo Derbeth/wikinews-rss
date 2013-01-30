@@ -1,35 +1,16 @@
 #!/usr/bin/perl -w
-#
-# Program: rss-updater.pl
-#   Updates RSS feed of Wikinews
-#
-# Parameters:
-#   none
-#
-# Author:
-#   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>,
-#            [[n:pl:User:Derbeth]]
-#
-# Licence:
-#   3-clause BSD, <http://www.opensource.org/licenses/bsd-license.php>
-#   GPL sucks!
-#
 # Programming language:
 #   Perl 5
 #
-# Platform:
-#   cross-platform
-#
 # Documentation standard:
 #   NaturalDocs, <http://www.naturaldocs.org/>
-#
-# Coding standard:
-#   Awful.
 #
 # Encoding:
 #   UTF-8
 
 use Encode;
+use Getopt::Long;
+use Pod::Usage;
 
 use NewsHeadline;
 use NewsList;
@@ -37,7 +18,6 @@ use NewsManager;
 use Feed;
 use Settings;
 use Status;
-#use DebugSettings;
 
 use strict;
 use utf8;
@@ -66,6 +46,16 @@ my $ERROR_CLEAR_DELAY=20;
 
 Derbeth::Web::set('DOWNLOAD_METHOD','post');
 Derbeth::Web::set('DEBUG',$Settings::DEBUG_MODE);
+
+my $show_help=0;
+my $debug_mode=0;
+
+GetOptions(
+	'debug|d' => \$debug_mode,
+	'help|h' => \$show_help,
+) or pod2usage('-verbose'=>1,'-exitval'=>1);
+pod2usage('-verbose'=>2,'-noperldoc'=>1) if ($show_help);
+Settings::set_debug_mode() if $debug_mode;
 
 
 ############################################################################
@@ -226,3 +216,31 @@ while( 1 ) {
 	
 	sleep(60 * $Settings::CHECKOUT_PAUSE);
 }
+
+
+=head1 NAME
+
+rss-updater.pl - updates Wikinews RSS channel
+
+=head1 SYNOPSIS
+
+ ./rss-updater.pl <options>
+
+ Options:
+   -d --debug             runs program in diagnostic mode
+
+   -h --help              display help and exit
+
+ All options are optional. All boolean options are can be negated using --no- prefix.
+
+=head1 LICENCE
+
+ 3-clause BSD, <http://www.opensource.org/licenses/bsd-license.php>
+
+
+=head1 AUTHOR
+
+ Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>,
+ [[n:pl:User:Derbeth]]
+
+=cut

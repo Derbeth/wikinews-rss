@@ -17,7 +17,7 @@ use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
 
 # Const: $VERSION
 #   program version
-$VERSION = '0.7.0';
+$VERSION = '0.7.1';
 
 # Const: $DEBUG_MODE
 #   setting to true causes more diagnostic messages to be printed
@@ -113,5 +113,16 @@ $LOGO_HEIGHT = 92;
 # if true, on each check the bot will clear MediaWiki cache for the page
 # containing news list
 $PURGE_NEWS_LIST = 1;
+
+sub set_debug_mode {
+	$Settings::PURGE_NEWS_LIST = 0;
+	$Settings::CHECKOUT_PAUSE = 1;
+	$Settings::NEWS_ACCEPT_TIME = 1;
+
+	$Settings::DEBUG_MODE = 1;
+	# $Settings::READ_LIST_FROM_FILE = 1;
+
+	print STDERR "Debug settings used\n";
+}
 
 1;

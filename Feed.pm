@@ -156,10 +156,8 @@ sub addEntry {
 		shift @{$self->{'entries'}}; # remove oldest
 	}
 	
-	$date = $self->formatTime($date);
-	my $new_entry = new FeedEntry($title,$date,$link,$summary,$guid);
-	
-	push @{$self->{'entries'}}, $new_entry; # oldest entries first
+	# oldest entries first
+	push @{$self->{'entries'}}, $self->_createEntry($title,$date,$link,$summary,$guid);
 	
 	#print "add entry $title - $link - $date\n" #DEBUG;
 }
@@ -170,11 +168,27 @@ sub replaceEntry {
 	{
 		if( $self->{'entries'}[$i]->{'title'} eq $title )
 		{ # replacing
-			$self->{'entries'}[$i] = new FeedEntry($title,$date,$link,$summary,$guid);
+			$self->{'entries'}[$i] = $self->_createEntry($title,$date,$link,$summary,$guid);
 			return 1;
 		}
 	}
 	return 0;
+}
+
+# Function: _createEntry
+#   creates a new, properly formatted FeedEntry
+#
+# Parameters:
+#   $title - news title
+#   $date - news date (timestamp)
+#   $link - URL to website with news
+#   $summary - summary text
+#   $guid - GUID of the news item (optional)
+#
+sub _createEntry {
+	my($self,$title,$date,$link,$summary,$guid) = @_;
+	$date = $self->formatTime($date);
+	new FeedEntry($title,$date,$link,$summary,$guid);
 }
 
 sub removeEntry {
