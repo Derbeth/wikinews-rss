@@ -5,7 +5,7 @@ use Derbeth::Web;
 
 use strict 'vars';
 
-$Derbeth::Web::cache_on = 1;
+$Derbeth::Web::cache_pages = 1;
 
 my $news = new NewsHeadline('tit','link',time);
 

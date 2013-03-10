@@ -35,6 +35,7 @@ sub test_parseInfoResponse {
 	$news->parseInfoResponse($response);
 	assert_num_equals(199643, $news->{'lastrevid'});
 	assert_equals('tag:pl.wikinews.org,2013:44953', $news->{'guid'});
+	assert_equals('http://pl.wikinews.org/wiki/220._rocznica_%C5%9Bmierci_Ludwika_XVI', $news->{'link'});
 	print "Passed test_parseInfoResponse\n";
 }
 

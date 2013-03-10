@@ -18,6 +18,7 @@ use NewsManager;
 use Feed;
 use Settings;
 use Status;
+use Derbeth::Web 0.5.0;
 
 use strict;
 use utf8;
@@ -44,9 +45,6 @@ my $MAX_FETCH_FAILURES = 20;
 #   Should be greater than $MAX_FETCH_FAILURES
 my $ERROR_CLEAR_DELAY=20;
 
-Derbeth::Web::set('DOWNLOAD_METHOD','post');
-Derbeth::Web::set('DEBUG',$Settings::DEBUG_MODE);
-
 my $show_help=0;
 my $debug_mode=0;
 
@@ -57,6 +55,12 @@ GetOptions(
 pod2usage('-verbose'=>2,'-noperldoc'=>1) if ($show_help);
 Settings::set_debug_mode() if $debug_mode;
 
+$Derbeth::Web::user_agent = 'DerbethBot for Wikinews RSS';
+$Derbeth::Web::MAX_FILES_IN_CACHE=100;
+$Derbeth::Web::DEBUG=$Settings::DEBUG_MODE;
+if ($Settings::DEBUG_MODE) {
+	Derbeth::Web::enable_caching(1);
+}
 
 ############################################################################
 # Section: Functions
@@ -91,7 +95,7 @@ sub fetch_news_list {
 	my $error_msg = '';
 
 	Derbeth::Web::purge_page($Settings::NEWS_LIST_URL) if $Settings::PURGE_NEWS_LIST;
-	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($Settings::NEWS_LIST_URL);
+	my $page = decode_utf8(Derbeth::Wikipedia::get_page($Settings::NEWS_LIST_URL));
 
 	if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
 	if( Derbeth::Wikipedia::jest_redirectem($page) ) { $error_msg = "redirect instead of news list";}

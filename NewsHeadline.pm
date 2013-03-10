@@ -63,7 +63,7 @@ my @VULGARISMS = qw@chuj kutas cipa kurwa kurwy żydy gówno
 sub new {
 	my ($classname,$title,$link,$time) = @_;
 
-	#if( ! defined $title || ! defined $link ) { die "two parameters expected"; }
+	if( ! defined $title ) { die "expected news title!"; }
 	if( ! defined $time ) { $time = time; }
 
 	my $self = {};
@@ -96,7 +96,7 @@ sub getAgeMinutes {
 sub fetchDetails {
 	my $self = pop @_;
 
-	my $info_url = $self->{'api_base_url'} . "&prop=info";
+	my $info_url = $self->{'api_base_url'} . "&prop=info&inprop=url";
 	my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
 	my $revisions_url = $self->{'api_base_url'} . "&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1";
 
@@ -112,7 +112,7 @@ sub fetchDetails {
 sub queryApi {
 	my ($self, $url) = @_;
 
-	my $response = Derbeth::Web::strona_z_sieci($url);
+	my $response = Derbeth::Web::get_page($url);
 	if ($response !~ /"query"/) {
 		print "Wrong API response for $url: $response\n" if $Settings::DEBUG_MODE;
 		return '';
@@ -131,6 +131,11 @@ sub parseInfoResponse {
 	}
 	if ($json =~ m!"lastrevid" *: *(\d+)!) {
 		$self->{'lastrevid'} = $1;
+	}
+	if ($json =~ m!"fullurl" *: *"([^"]+)"!) {
+		my $link = $1;
+		$link =~ s!\\/!/!g; # TODO replace with a proper YAML parsing
+		$self->{'link'} = $link;
 	}
 }
 
@@ -166,7 +171,7 @@ sub timestampToTime {
 sub refresh {
 	my $self = pop @_;
 	my $info_url = $self->{'api_base_url'} . "&prop=info";
-	my $json = Derbeth::Web::strona_z_sieci($info_url);
+	my $json = Derbeth::Web::get_page($info_url);
 	if ($json =~ m!"lastrevid" *: *(\d+)!) {
 		my $newLastRevId = $1;
 		if (!$self->{'lastrevid'} || $self->{'lastrevid'} < $newLastRevId) {
