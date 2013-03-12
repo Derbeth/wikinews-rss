@@ -159,7 +159,7 @@ sub wydziel_zawartosc_odkreski {
 sub pobierz_zawartosc_strony {
    my $url = shift @_;
 
-   return wydziel_zawartosc( Derbeth::Web::pobierz_strone($url) );
+   return wydziel_zawartosc( Derbeth::Web::get_page($url) );
 }
 
 sub pobierz_zawartosc_artykulu {
