@@ -41,6 +41,7 @@ my @VULGARISMS = qw@chuj kutas cipa kurwa kurwy żydy gówno
 	jeban jebać pierdol pierdal pedał
 	!!!! wheeee
 	shit fuck cock nigger queer bitch@;
+push @VULGARISMS, 'Ten artykuł jest właśnie', 'Strona do natychmiastowego skasowania'; # {{Tworzone}}, {{Ek}}
 
 ############################################################################
 # Group: Functions
