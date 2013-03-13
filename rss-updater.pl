@@ -12,9 +12,8 @@ use Encode;
 use Getopt::Long;
 use Pod::Usage;
 
-use NewsHeadline;
-use NewsList;
 use NewsManager;
+use NewsSource;
 use Feed;
 use Settings;
 use Status;
@@ -71,7 +70,7 @@ my $feed = new Feed($Settings::OUTPUT_FILE, $Settings::FEED_TITLE, $Settings::PA
 $feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
 	$Settings::LOGO_WIDTH, $Settings::LOGO_HEIGHT);
 $feed->setCopyright($Settings::FEED_COPYRIGHT);
-my $news_manager = new NewsManager($feed, $Settings::NEWS_LIST_URL, $Settings::CHECKOUT_PAUSE);
+my $news_manager = new NewsManager($feed, new NewsSource($Settings::NEWS_LIST_URL), $Settings::CHECKOUT_PAUSE);
 
 print "rss-updater version $Settings::VERSION running.\n";
 print "RSS channel should appear after about ", (2*$Settings::CHECKOUT_PAUSE), " minutes.\n";
