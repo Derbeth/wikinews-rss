@@ -8,6 +8,7 @@ use Derbeth::Wikipedia;
 
 use Encode;
 use URI::Escape;
+use Unicode::Escape;
 
 # Const: $MAX_FETCH_FAILURES
 #   how many fetch failures can be tollerated
@@ -37,7 +38,8 @@ sub new {
 	$source = uri_escape_utf8($source);
 	if ($self->{'source_type'} eq 'CATEGORY') {
 		$self->{'news_list_url'} = $wiki_base."/w/api.php?action=query&format=yaml"
-			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmtitle=Category:".$source;
+			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmlimit=".$Settings::MAX_NEW_NEWS
+			."&cmtitle=Category:$source";
 	} else { # HTML
 		$self->{'news_list_url'} = $wiki_base."/w/index.php?title=".$source;
 	}
@@ -178,7 +180,7 @@ sub get_titles_from_yaml {
 	my ($text) = @_;
 	my @titles;
 	while ($text =~ /"title":"([^"}]+)"/gc) {
-		push @titles, $1;
+		push @titles, decode_utf8(Unicode::Escape::unescape($1));
 	}
 	return @titles;
 }
