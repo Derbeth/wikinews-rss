@@ -143,9 +143,11 @@ sub saveNews {
 	$self->{'pending'}->remove($news);
 	$self->{'saved'}->add($news);
 
-	$news->fetchDetails();
+	my $fetch_successful = $news->fetchDetails();
 
-	if( !$news->wasCensored() )
+	if (!$fetch_successful) {
+		print "Won't add ", encode_utf8($news->{'title'}), " because its text cannot be fetched.\n";
+	} elsif( !$news->wasCensored() )
 	{
 		$self->{'feed'}->addEntry( $self->newsToFeed($news) );
 

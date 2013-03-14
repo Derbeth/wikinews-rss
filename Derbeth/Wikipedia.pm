@@ -123,7 +123,8 @@ sub strona_istnieje {
    #return( index($$text, "Search/$nazwa_strony") == -1 );
    return( index($$text, ':Log/delete') == -1 && index($$text, 'Wikibooks nie posiada') == -1
       && index($$text, 'Wikipedii nie ma') == -1 && index($$text, 'Nie ma jeszcze artyk') == -1
-		&& index($$text, 'Clear the cache') == -1 && index($$text, 'Access Denied') == -1);
+		&& index($$text, 'Clear the cache') == -1 && index($$text, 'Access Denied') == -1)
+		&& index($$text, 'Obecnie nie istnieje tekst o podanym tytule') == -1;
 }
 
 sub jest_redirectem {

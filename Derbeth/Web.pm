@@ -24,7 +24,7 @@
 #   low-level functions for retrieving pages from server.
 #
 # Initialization:
-#   when loaded, this package creates subdirectory <$CACHE_DIR> under directory
+#   when loaded, this package creates subdirectory <$cache_dir> under directory
 #   where it was called
 package Derbeth::Web;
 require Exporter;
@@ -35,20 +35,19 @@ use LWP;
 use Carp;
 use Digest::MD5 'md5_hex';
 use Encode;
-use URI::Escape qw/uri_escape_utf8/;
 
 our @ISA = qw/Exporter/;
 our @EXPORT = qw/get_page/;
-our $VERSION = 0.5.1;
-use vars qw($user_agent $cache_pages $MAX_FILES_IN_CACHE $DEBUG);
+our $VERSION = 0.6.0;
+use vars qw($user_agent $cache_pages $max_files_in_cache $debug $cache_dir);
 
-# Variable: $CACHE_DIR
+# Variable: $cache_dir
 #   name of directory holding cache
-my $CACHE_DIR = 'page-cache';
-# Variable: $MAX_FILES_IN_CACHE
+$cache_dir = 'page-cache';
+# Variable: $max_files_in_cache
 #   maximal number of cached pages
-$MAX_FILES_IN_CACHE=15000;
-$DEBUG=0;
+$max_files_in_cache=15000;
+$debug=0;
 # Variable: $user_agent
 #   user agent passed to server when retrieving pages
 $user_agent = 'DerbethBot for Wiktionary';
@@ -61,14 +60,14 @@ _create_cache();
 # Function: clear_cache
 #   removes cache dir and recreates it
 sub clear_cache {
-	`rm -r $CACHE_DIR`;
+	`rm -r $cache_dir`;
 	_create_cache();
 }
 
 sub _create_cache {
-	unless (-e $CACHE_DIR) {
-		mkdir($CACHE_DIR) or die "need to have directory '$CACHE_DIR' but cannot create it";
-		print "created cache dir $CACHE_DIR/\n";
+	unless (-e $cache_dir) {
+		mkdir($cache_dir) or die "need to have directory '$cache_dir' but cannot create it";
+		print "created cache dir $cache_dir/\n";
 	}
 }
 
@@ -78,16 +77,18 @@ sub _create_cache {
 sub get_page_from_web {
 	my $full_url=shift @_;
 	$full_url = encode_utf8($full_url);
-	print "getting from web: $full_url";
-	print " using proxy $proxy" if ($proxy);
-	print "\n";
+	if ($debug) {
+		print "getting from web: $full_url";
+		print " using proxy $proxy" if ($proxy);
+		print "\n";
+	}
 	my $ua = LWP::UserAgent->new;
 	$ua->agent($user_agent);
 	$ua->proxy('http', $proxy) if ($proxy);
 	$ua->timeout(90); # 1.5 minute
 	my $response = $ua->get($full_url);
 	if ($response->is_success) {
-		return $response->content;
+		return decode_utf8($response->content);
 	} else {
 		print encode_utf8("error getting $full_url: "),$response->content,"\n";
 		return '';
@@ -122,9 +123,9 @@ sub use_proxy {
 sub can_cache {
 	if( !$cache_pages ) { return 0; }
 	my $dir;
-	opendir($dir,$CACHE_DIR) or return 0;
-	my @files = readdir $dir or return 0;
-	my $space_left = ( $#files < $MAX_FILES_IN_CACHE );
+	opendir($dir,$cache_dir) or return 0;
+	my @files = grep { !/^\./ } readdir($dir);
+	my $space_left = ( $#files < $max_files_in_cache );
 	print "cache full\n" unless $space_left;
 	return $space_left;
 }
@@ -133,19 +134,22 @@ sub get_page_from_cache {
 	my ($full_url,$recache)=@_;
 
 	if (can_cache()) {
-		my $filename=$CACHE_DIR.'/'.md5_hex(encode_utf8($full_url));
+		my $base_name = md5_hex(encode_utf8($full_url));
+		my $filename=$cache_dir.'/'.$base_name;
 
 		if( -e $filename && !$recache) {
 			print "reading cache for ", encode_utf8($full_url);
-			#print " from $filename\n"; #DEBUG
+			print " from $base_name" if($debug);
 			print "\n";
 			return get_page_from_file($filename);
 		} else {
 			my $text = get_page_from_web($full_url);
 			# do not cache if fetching failed
 			if ($text) {
-# 				print "writing to cache\n"; #DEBUG
+# 				print "writing from ", encode_utf8($full_url), " to cache $filename\n" if $debug;
 				save_page_to_file($text, $filename);
+			} else {
+# 				print "will not write to cache because got empty text\n"; #DEBUG
 			}
 			return $text;
       	}
@@ -156,12 +160,11 @@ sub get_page_from_cache {
 
 sub get_page_from_file {
    my $file = shift @_;
-   #print "tryb offline\n";
    my $text = '';
-   open(IN,$file) or die "cannot open file $file";
-   while(my $c=<IN>) { $text .= $c; }
-   #if ($text eq '') { print STDERR "warning: no content\n"; }
-   return decode_utf8($text);
+   open(IN,$file) or die "cannot open file $file: $!";
+   my @lines = <IN>;
+   close(IN);
+   return decode_utf8(join('', @lines));
 }
 
 sub save_page_to_file {
@@ -169,7 +172,8 @@ sub save_page_to_file {
    my $file = shift @_;
 
    open(OUT,'>',$file) or die "cannot write to file $file";
-   print OUT $$text;
+   print OUT encode_utf8($$text);
+   close(OUT);
 }
 
 sub purge_page {
@@ -180,7 +184,7 @@ sub purge_page {
 	@forms = grep $_->attr("class") && $_->attr("class") eq "visualClear", @forms;
 	my $form = shift @forms;
 	unless($form) {
-		print "No purge form ", scalar(localtime()), "\n" if $DEBUG;
+		print "No purge form ", scalar(localtime()), "\n" if $debug;
 		return;
 	}
 #     $form->dump();

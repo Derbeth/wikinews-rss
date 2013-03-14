@@ -12,7 +12,7 @@ use Exporter;
 use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
 	$DEBUG_MODE $DOMAIN $FEED_COPYRIGHT $FEED_DESCRIPTION $FEED_LANGUAGE $FEED_LINK $FEED_TITLE
 	$READ_LIST_FROM_FILE $HEADLINES_FILE $LINK_PREFIX $LOGO_URL $LOGO_HEIGHT $LOGO_WIDTH
-	$MAX_ENTRIES $MAX_NEW_NEWS $NEWS_ACCEPT_TIME $NEWS_LIST_URL
+	$MAX_ENTRIES $MAX_NEW_NEWS $NEWS_ACCEPT_TIME $NEWS_LIST_PAGE
 	$OUTPUT_FILE $PAGE_URL $PURGE_NEWS_LIST $STATUS_FILE $VERSION);
 
 # Const: $VERSION
@@ -83,7 +83,10 @@ $ADMIN_MAIL = 'der'.'beth' . '@in'.'teria.pl';
 
 # Const: $NEWS_LIST_URL
 #   URL to list of news
-$NEWS_LIST_URL = 'http://pl.wikinews.org/w/index.php?title=Szablon:Najnowsze_wiadomo%C5%9Bci';
+# $NEWS_LIST_PAGE = 'Szablon:Najnowsze_wiadomo%C5%9Bci';
+$NEWS_LIST_PAGE = 'Szablon:Najnowsze_wiadomości';
+
+$LINK_PREFIX = 'http://pl.wikinews.org';
 
 $FEED_TITLE = 'Wikinews Polska';
 
@@ -94,8 +97,6 @@ $FEED_LANGUAGE = 'pl';
 $PAGE_URL = 'http://pl.wikinews.org/';
 
 $DOMAIN = 'pl.wikinews.org';
-
-$LINK_PREFIX = 'http://pl.wikinews.org';
 
 $FEED_LINK = 'http://tools.wikimedia.pl/~derbeth/wikinews.xml';
 

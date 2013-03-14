@@ -97,6 +97,8 @@ sub getAgeMinutes {
 sub fetchDetails {
 	my $self = pop @_;
 
+	$self->{'fetch_error'} = 0;
+
 	my $info_url = $self->{'api_base_url'} . "&prop=info&inprop=url";
 	my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
 	my $revisions_url = $self->{'api_base_url'} . "&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1";
@@ -108,6 +110,8 @@ sub fetchDetails {
 	$self->parseRevisionsResponse($revisions_json);
 
 	$self->fetchSummary();
+
+	return !$self->{'fetch_error'};
 }
 
 sub queryApi {
@@ -129,6 +133,8 @@ sub parseInfoResponse {
 		my $domain = $Settings::DOMAIN;
 		my $year = localtime->year() + 1900;
 		$self->{'guid'} = "tag:$domain,$year:$pageid";
+	} else {
+		$self->{'fetch_error'} = 1;
 	}
 	if ($json =~ m!"lastrevid" *: *(\d+)!) {
 		$self->{'lastrevid'} = $1;
@@ -234,6 +240,9 @@ sub fetchSummary {
 	my $self = pop @_;
 	
 	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($self->{'link'});
+	if ($page !~ /\w/) {
+		$self->{'fetch_error'} = 1;
+	}
 
 	my $summary = $self->extractSummary($page);
 	if ($summary) {

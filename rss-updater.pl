@@ -43,8 +43,8 @@ pod2usage('-verbose'=>2,'-noperldoc'=>1) if ($show_help);
 Settings::set_debug_mode() if $debug_mode;
 
 $Derbeth::Web::user_agent = 'DerbethBot for Wikinews RSS';
-$Derbeth::Web::MAX_FILES_IN_CACHE=100;
-$Derbeth::Web::DEBUG=$Settings::DEBUG_MODE;
+$Derbeth::Web::max_files_in_cache=100;
+$Derbeth::Web::debug=$Settings::DEBUG_MODE;
 if ($Settings::DEBUG_MODE) {
 	Derbeth::Web::enable_caching(1);
 }
@@ -70,7 +70,9 @@ my $feed = new Feed($Settings::OUTPUT_FILE, $Settings::FEED_TITLE, $Settings::PA
 $feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
 	$Settings::LOGO_WIDTH, $Settings::LOGO_HEIGHT);
 $feed->setCopyright($Settings::FEED_COPYRIGHT);
-my $news_manager = new NewsManager($feed, new NewsSource($Settings::NEWS_LIST_URL), $Settings::CHECKOUT_PAUSE);
+my $news_source = new NewsSource($Settings::LINK_PREFIX, $Settings::NEWS_LIST_PAGE);
+# my $news_source = new NewsSource($Settings::LINK_PREFIX, 'Nauka', 'CATEGORY');
+my $news_manager = new NewsManager($feed, $news_source, $Settings::CHECKOUT_PAUSE);
 
 print "rss-updater version $Settings::VERSION running.\n";
 print "RSS channel should appear after about ", (2*$Settings::CHECKOUT_PAUSE), " minutes.\n";

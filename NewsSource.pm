@@ -1,11 +1,13 @@
 package NewsSource;
 use strict 'vars';
+use utf8;
 
 use Status;
 use Derbeth::Web 0.5.0;
 use Derbeth::Wikipedia;
 
 use Encode;
+use URI::Escape;
 
 # Const: $MAX_FETCH_FAILURES
 #   how many fetch failures can be tollerated
@@ -19,13 +21,26 @@ my $MAX_FETCH_FAILURES = 20;
 #   Should be greater than $MAX_FETCH_FAILURES
 my $ERROR_CLEAR_DELAY=20;
 
+# Parameters:
+#   $wiki_base - like 'http://pl.wikinews.org'
+#   $source - like 'Szablon:Najnowszewiadomości'
+#   $source_type - 'CATEGORY' or 'HTML'
 sub new {
-	my ($class, $news_list_url) = @_;
+	my ($class, $wiki_base, $source, $source_type) = @_;
 
 	my $self = {};
 	bless($self, "NewsSource");
+	
+	$self->{'source_type'} = $source_type || 'HTML';
+	$self->{'source'} = $source;
 
-	$self->{'news_list_url'} = $news_list_url;
+	$source = uri_escape_utf8($source);
+	if ($self->{'source_type'} eq 'CATEGORY') {
+		$self->{'news_list_url'} = $wiki_base."/w/api.php?action=query&format=yaml"
+			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmtitle=Category:".$source;
+	} else { # HTML
+		$self->{'news_list_url'} = $wiki_base."/w/index.php?title=".$source;
+	}
 
 	# internal variable, counts fetch failures for <fetch_news_list()>
 	$self->{'fetch_failures'} = 0;
@@ -37,14 +52,38 @@ sub new {
 sub fetch_titles {
 	my ($self) = @_;
 
-	my @titles = retrieve_news_headlines($self->fetch_news_list());
+	my @titles;
+	if ($self->{'source_type'} eq 'CATEGORY') {
+		@titles = get_titles_from_yaml(Derbeth::Web::get_page($self->{'news_list_url'}));
+	} else {
+		@titles = get_titles_from_html($self->fetch_as_html_page());
+	}
+
+	if ($Settings::DEBUG_MODE) {
+		print STDERR "Fetched ", scalar(@titles), " news from ", encode_utf8($self->{source}), ": ", brief_titles_list(@titles), "\n";
+	}
 
 	$self->clear_errors();
 
 	return @titles;
 }
 
-# Function: fetch_news_list
+sub brief_titles_list {
+	my @titles = @_;
+	@titles = map { crop_after(35, $_) } @titles;
+	join(' ', map {encode_utf8("`$_'")} @titles);
+}
+
+sub crop_after {
+	my ($max_len, $text) = @_;
+	if (length($text) <= $max_len) {
+		return $text;
+	} else {
+		return substr($text, 0, $max_len-1) . '…';
+	}
+}
+
+# Function: fetch_as_html_page
 #   gets list of latest news from server
 #
 # Parameters:
@@ -56,21 +95,17 @@ sub fetch_titles {
 # Remarks:
 #   function counts number of cases where news list cannot be fetched from
 #   server. If it exceeds <$MAX_FETCH_FAILURES>, script dies.
-sub fetch_news_list {
+sub fetch_as_html_page {
 	my($self) = @_;
 	if ($Settings::READ_LIST_FROM_FILE) {
 		my $input_file = $Settings::HEADLINES_FILE;
 		print "Reading new list from file $input_file\n";
-		open(FILE,$input_file) or die "cannot read news list: $!";
-		my @lines = <FILE>;
-		close(FILE);
-		my $content = join('', @lines);
-		return decode_utf8($content);
+		return Derbeth::Web::get_page_from_file($input_file);
 	}
 	my $error_msg = '';
 
 	Derbeth::Web::purge_page($self->{'news_list_url'}) if $Settings::PURGE_NEWS_LIST;
-	my $page = decode_utf8(Derbeth::Wikipedia::get_page($self->{'news_list_url'}));
+	my $page = Derbeth::Web::get_page($self->{'news_list_url'});
 
 	if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
 	if( Derbeth::Wikipedia::jest_redirectem($page) ) { $error_msg = "redirect instead of news list";}
@@ -86,13 +121,11 @@ sub fetch_news_list {
 		return '';
 	}
 
-	open(OUT, ">$Settings::HEADLINES_FILE");
-	print OUT encode_utf8($page);
-	close(OUT);
+	Derbeth::Web::save_page_to_file($page, $Settings::HEADLINES_FILE);
 	return $page;
 }
 
-# Function: retrieve_news_headlines
+# Function: get_titles_from_html
 #   retrieves news headlines from news list
 #
 # Parameters:
@@ -103,7 +136,7 @@ sub fetch_news_list {
 #
 # Remarks:
 #   reads only first <$MAX_NEW_NEWS> links
-sub retrieve_news_headlines {
+sub get_titles_from_html {
 	my $content = pop @_;
 
 	if( $content eq '' ) { return (); }
@@ -138,10 +171,15 @@ sub retrieve_news_headlines {
 		}
 	}
 
-	if ($Settings::DEBUG_MODE) {
-		print STDERR "Fetched ", scalar(@titles), " news: ", join(' ', map {encode_utf8("`$_'")} @titles), "\n";
-	}
+	return @titles;
+}
 
+sub get_titles_from_yaml {
+	my ($text) = @_;
+	my @titles;
+	while ($text =~ /"title":"([^"}]+)"/gc) {
+		push @titles, $1;
+	}
 	return @titles;
 }
 
