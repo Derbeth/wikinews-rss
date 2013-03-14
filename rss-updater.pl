@@ -43,7 +43,7 @@ pod2usage('-verbose'=>2,'-noperldoc'=>1) if ($show_help);
 Settings::set_debug_mode() if $debug_mode;
 
 $Derbeth::Web::user_agent = 'DerbethBot for Wikinews RSS';
-$Derbeth::Web::max_files_in_cache=100;
+$Derbeth::Web::max_files_in_cache=150;
 $Derbeth::Web::debug=$Settings::DEBUG_MODE;
 if ($Settings::DEBUG_MODE) {
 	Derbeth::Web::enable_caching(1);

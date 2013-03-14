@@ -125,7 +125,7 @@ sub can_cache {
 	my $dir;
 	opendir($dir,$cache_dir) or return 0;
 	my @files = grep { !/^\./ } readdir($dir);
-	my $space_left = ( $#files < $max_files_in_cache );
+	my $space_left = ( scalar(@files) < $max_files_in_cache );
 	print "cache full\n" unless $space_left;
 	return $space_left;
 }
