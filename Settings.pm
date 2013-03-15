@@ -9,7 +9,7 @@ use utf8;
 
 use Exporter;
 
-use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $DATE_FROM_NEWEST_REVISION
+use vars qw($ADMIN_MAIL $CHECKOUT_PAUSE $FORCED_FEED_CHECK_INTERVAL $DATE_FROM_NEWEST_REVISION
 	$DEBUG_MODE $DOMAIN $FEED_COPYRIGHT $FEED_DESCRIPTION $FEED_LANGUAGE $FEED_LINK $FEED_TITLE
 	$READ_LIST_FROM_FILE $HEADLINES_FILE $LINK_PREFIX $LOGO_URL $LOGO_HEIGHT $LOGO_WIDTH
 	$MAX_ENTRIES $MAX_NEW_NEWS $NEWS_ACCEPT_TIME $NEWS_LIST_PAGE
@@ -67,6 +67,9 @@ $MAX_NEW_NEWS = 15;
 #   <$WAIT_TIME>: both values should be synchronised
 $CHECKOUT_PAUSE = 5;
 
+# if defined, will overwrite check interval for every feed
+$FORCED_FEED_CHECK_INTERVAL = undef;
+
 # Const: $NEWS_ACCEPT_TIME
 #   time (in minutes) every news has to wait in pending list until it is removed as
 #   outdated or saved as accepted
@@ -117,7 +120,7 @@ $PURGE_NEWS_LIST = 1;
 
 sub set_debug_mode {
 	$Settings::PURGE_NEWS_LIST = 0;
-	$Settings::CHECKOUT_PAUSE = 1;
+	$Settings::FORCED_FEED_CHECK_INTERVAL = 1;
 	$Settings::NEWS_ACCEPT_TIME = 1;
 
 	$Settings::DEBUG_MODE = 1;

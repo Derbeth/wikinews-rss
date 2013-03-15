@@ -40,13 +40,11 @@ my $GENERATOR_NAME = "Wikinews RSS bot by Derbeth ver. ".$Settings::VERSION;
 sub new {
     my($classname,$filename,$title,$website,$description,
 	$lang_code,$feed_link,$webmaster,$pub_date,$encoding) = @_;
-    
+
     $lang_code = 'pl' unless $lang_code;
     $webmaster = '' unless defined($webmaster);
     $pub_date = '' unless defined($pub_date);
     $encoding = 'utf-8' unless defined($encoding);
-	
-    printf("filename: $filename\n"); # DEBUG
 
     my $self = {};
     bless($self, "Feed");

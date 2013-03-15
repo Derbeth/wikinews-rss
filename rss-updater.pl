@@ -13,8 +13,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use NewsManager;
-use NewsSource;
-use Feed;
+use FeedDefinitionReader;
 use Settings;
 use Status;
 use Derbeth::Web 0.5.0;
@@ -65,22 +64,23 @@ $SIG{__DIE__} = sub { print @_; Status::set_status(3); exit; };
 
 Status::set_status(0); # started
 
-my $feed = new Feed($Settings::OUTPUT_FILE, $Settings::FEED_TITLE, $Settings::PAGE_URL,
-	$Settings::FEED_DESCRIPTION, $Settings::FEED_LANGUAGE, $Settings::FEED_LINK);
-$feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
-	$Settings::LOGO_WIDTH, $Settings::LOGO_HEIGHT);
-$feed->setCopyright($Settings::FEED_COPYRIGHT);
-my $news_source = new NewsSource($Settings::LINK_PREFIX, $Settings::NEWS_LIST_PAGE);
-# my $news_source = new NewsSource($Settings::LINK_PREFIX, 'Nauka', 'CATEGORY');
-my $news_manager = new NewsManager($feed, $news_source, $Settings::CHECKOUT_PAUSE);
-
 print "rss-updater version $Settings::VERSION running.\n";
-print "RSS channel should appear after about ", (2*$Settings::CHECKOUT_PAUSE), " minutes.\n";
+print "News are accepted after being present for at least $Settings::NEWS_ACCEPT_TIME minutes\n";
+
+my @feed_defs = new FeedDefinitionReader()->read();
+my @news_managers;
+
+foreach my $feed_def (@feed_defs) {
+	my $feed = $feed_def->{'feed'};
+	my $news_source = $feed_def->{'news_source'};
+	print encode_utf8("Feed from $news_source->{wiki_base}=>$news_source->{source} read every $news_source->{check_mins} mins to $feed->{filename}\n");
+	push @news_managers, new NewsManager($feed, $news_source);
+}
 print "Hit Control+C to exit.\n\n";
 
 sleep 3;
 while( 1 ) {
-	$news_manager->tick();
+	foreach my $news_manager (@news_managers) { $news_manager->tick(); }
 	sleep(60);
 }
 

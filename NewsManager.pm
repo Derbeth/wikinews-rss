@@ -40,7 +40,7 @@ my $MAX_SAVED = 30;
 ####################################
 
 sub new {
-	my ($class, $feed_ref, $news_source, $check_interval_mins) = @_;
+	my ($class, $feed_ref, $news_source) = @_;
 
 	my $self = {};
 	bless($self, "NewsManager");
@@ -52,18 +52,14 @@ sub new {
 
 	$self->{'feed_changed'} = 0; # if something new was added, is set to 1 and feed is saved to disk
 
-	$self->{'ticks'} = 0;
-	$self->{'check_interval_mins'} = $check_interval_mins;
-
 	return $self;
 }
 
 sub tick {
 	my ($self) = @_;
-	if ($self->{'ticks'} % $self->{'check_interval_mins'} == 0) {
+	if ($self->{'news_source'}->tick()) {
 		$self->processNewNews($self->{'news_source'}->fetch_titles());
 	}
-	++$self->{'ticks'};
 }
 
 # Function: processNewNews

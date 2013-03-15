@@ -27,12 +27,13 @@ my $ERROR_CLEAR_DELAY=20;
 #   $source - like 'Szablon:Najnowszewiadomości'
 #   $source_type - 'CATEGORY' or 'HTML'
 sub new {
-	my ($class, $wiki_base, $source, $source_type) = @_;
+	my ($class, $check_interval_mins, $wiki_base, $source, $source_type) = @_;
 
 	my $self = {};
 	bless($self, "NewsSource");
 	
 	$self->{'source_type'} = $source_type || 'HTML';
+	$self->{'wiki_base'} = $wiki_base;
 	$self->{'source'} = $source;
 
 	$source = uri_escape_utf8($source);
@@ -44,11 +45,21 @@ sub new {
 		$self->{'news_list_url'} = $wiki_base."/w/index.php?title=".$source;
 	}
 
+	$self->{'ticks'} = 0;
+	$self->{'check_mins'} = $check_interval_mins;
+
 	# internal variable, counts fetch failures for <fetch_news_list()>
 	$self->{'fetch_failures'} = 0;
 	$self->{'loop_count'}=1;
 
 	return $self;
+}
+
+sub tick {
+	my ($self) = @_;
+	my $should_fetch_now = ($self->{'ticks'} % $self->{'check_mins'} == 0);
+	++$self->{'ticks'};
+	return $should_fetch_now;
 }
 
 sub fetch_titles {
