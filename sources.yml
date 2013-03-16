@@ -1,0 +1,38 @@
+---
+sources:
+  - output_file: ../public_html/wikinews.xml
+    check_interval: 5
+    source_type: HTML
+    source: Szablon:Najnowsze_wiadomości
+    title: Wikinews Polska
+    page_url: http://pl.wikinews.org/
+    link_prefix: http://pl.wikinews.org
+    domain: pl.wikinews.org
+    language: pl
+    feed_link: http://tools.wikimedia.pl/~derbeth/wikinews.xml
+    logo: &wikinewslogo
+        url: http://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Wikinews-logo-en.png/120px-Wikinews-logo-en.png
+        width: 120
+        height: 92
+    description: >
+        Kanał RSS Wikinews Polska - wolnego serwisu informacyjnego tworzonego w technologii wiki
+        (podobnie jak Wikipedia)
+    copyright: &wikinews_copyright >
+        Zawartość Wikinews Polska dostępna na licencji Creative Commons 2.5 Uznanie Autorstwa
+        (http://creativecommons.org/licenses/by/2.5/)
+
+  - output_file: ../public_html/wikinews-nauka.xml
+    check_interval: 120
+    source_type: CATEGORY
+    source: Nauka
+    title: Wikinews Polska - Nauka
+    page_url: http://pl.wikinews.org/wiki/Portal:Nauka
+    link_prefix: http://pl.wikinews.org
+    domain: pl.wikinews.org
+    language: pl
+    feed_link: http://tools.wikimedia.pl/~derbeth/wikinews-nauka.xml
+    logo: *wikinewslogo
+    description: >
+        Wiadomości z kategorii Nauka - Wikinews Polska, wolny serwis informacyjny tworzony w technologii wiki
+        (podobnie jak Wikipedia)
+    copyright: *wikinews_copyright

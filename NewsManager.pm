@@ -71,7 +71,7 @@ sub processNewNews {
 
 	my $new = new NewsList;
 	foreach my $title (@titles) {
-		$new->add(new NewsHeadline($title));
+		$new->add(new NewsHeadline($self->{news_source}, $title));
 	}
 	$new->reverseList(); # oldest first
 
@@ -82,7 +82,7 @@ sub processNewNews {
 	{
 		my $news = $iterator->getNext();
 
-		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) > $Settings::NEWS_ACCEPT_TIME )
+		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) >= $Settings::NEWS_ACCEPT_TIME )
 		{
 			$self->saveNews($news);
 
@@ -122,7 +122,7 @@ sub processNewNews {
 
 	set_status(1, $self->{'last_saved'});
 	if ($Settings::DEBUG_MODE) {
-		print "\n", scalar(localtime()), ' ';
+		print "\n", scalar(localtime()), ' ', encode_utf8($self->{news_source}->{source}), ' | ';
 		print "Accepted: ", encode_utf8($self->{'saved'}->toString(1)), "\n";
 		print "Pending: ", encode_utf8($self->{'pending'}->toString(1)), "\n";
 	}

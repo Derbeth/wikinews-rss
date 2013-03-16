@@ -5,31 +5,50 @@ use utf8;
 use Feed;
 use NewsSource;
 use Settings;
+use YAML::Syck qw'LoadFile';
+use Derbeth::Web;
+
+$YAML::Syck::ImplicitUnicode = 1;
 
 sub new {
-	my ($class) = @_;
+	my ($class, $source) = @_;
 	my $self = {};
 	bless($self, $class);
-
+	$self->{'source'} = $source;
 	return $self;
 }
 
 sub read {
 	my ($self) = @_;
 
-	my $feed = new Feed($Settings::OUTPUT_FILE, $Settings::FEED_TITLE, $Settings::PAGE_URL,
-		$Settings::FEED_DESCRIPTION, $Settings::FEED_LANGUAGE, $Settings::FEED_LINK);
-	$feed->setImage($Settings::LOGO_URL, $Settings::FEED_TITLE, $Settings::PAGE_URL,
-		$Settings::LOGO_WIDTH, $Settings::LOGO_HEIGHT);
-	$feed->setCopyright($Settings::FEED_COPYRIGHT);
-	my $check_interval = $Settings::CHECKOUT_PAUSE;
-	$check_interval = $Settings::FORCED_FEED_CHECK_INTERVAL if $Settings::FORCED_FEED_CHECK_INTERVAL;
-# 	my $news_source = new NewsSource($check_interval, $Settings::LINK_PREFIX, $Settings::NEWS_LIST_PAGE);
-	my $news_source = new NewsSource($check_interval, $Settings::LINK_PREFIX, 'Nauka', 'CATEGORY');
+	open(my $fh, "<:encoding(UTF-8)", $self->{'source'}) || die "cannot read $self->{source}: $!";
+	my $all = LoadFile($self->{'source'});
+	close($fh);
+	my @defs;
+	foreach my $doc (@{$all->{sources}}) {
+		my $feed = new Feed($doc->{output_file},
+			$doc->{title},
+			$doc->{page_url},
+			$doc->{description},
+			$doc->{language},
+			$doc->{feed_link});
+		$feed->setImage($doc->{logo}->{url},
+			$doc->{title},
+			$doc->{page_url},
+			$doc->{logo}->{width},
+			$doc->{logo}->{height});
+		$feed->setCopyright($doc->{copyright});
+		my $check_interval = $doc->{check_interval};
+		$check_interval = $Settings::FORCED_FEED_CHECK_INTERVAL if $Settings::FORCED_FEED_CHECK_INTERVAL;
+		my $news_source = new NewsSource($check_interval,
+			$doc->{link_prefix},
+			$doc->{domain},
+			$doc->{source},
+			$doc->{source_type});
 
-	my $def = {'feed' => $feed, 'news_source' => $news_source};
-
-	return ($def);
+		push @defs, {'feed' => $feed, 'news_source' => $news_source};
+	}
+	return @defs;
 }
 
 1;

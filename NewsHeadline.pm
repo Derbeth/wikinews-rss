@@ -62,7 +62,7 @@ push @VULGARISMS, 'Ten artykuł jest właśnie', 'Strona do natychmiastowego ska
 # Returns:
 #   reference to new <NewsHeadline> object
 sub new {
-	my ($classname,$title,$link,$time) = @_;
+	my ($classname,$source,$title,$link,$time) = @_;
 
 	if( ! defined $title ) { die "expected news title!"; }
 	if( ! defined $time ) { $time = time; }
@@ -74,7 +74,9 @@ sub new {
    $self->{'link'} = $link;
    $self->{'time'} = $time;
    $self->{'summary'} = '';
-   $self->{'api_base_url'} = $Settings::LINK_PREFIX."/w/api.php?action=query&format=yaml&titles=".uri_escape_utf8($self->{'title'});
+
+   $self->{'source'} = $source;
+   $self->{'api_base_url'} = $source->{wiki_base}."/w/api.php?action=query&format=yaml&titles=".uri_escape_utf8($self->{'title'});
    #printf("title: '%s' (%s)\n", $self->{'title'}, $title); DEBUG
 
    return $self;
@@ -130,7 +132,7 @@ sub parseInfoResponse {
 	if ($json =~ m!"pageid" *: *(\d+)!) {
 		# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
 		my $pageid = $1;
-		my $domain = $Settings::DOMAIN;
+		my $domain = $self->{source}->{domain};
 		my $year = localtime->year() + 1900;
 		$self->{'guid'} = "tag:$domain,$year:$pageid";
 	} else {
@@ -214,20 +216,20 @@ sub equals {
 # Function: fixUrl
 #   changes relative url to absolute one
 sub fixUrl {
-	my ($url) = @_;
+	my ($self,$url) = @_;
 	return $url if ($url =~ /^http/);
 	return "http:$url" if ($url =~ m!^//!);
-	return $Settings::LINK_PREFIX.$url;
+	return $self->{source}->{wiki_base}.$url;
 }
 
 # Function: fixUrls
 #   changes all relative URLs to absolute ones
 sub fixUrls {
-	my ($text) = @_;
+	my ($self,$text) = @_;
 	my $retval = '';
 	
 	while( $text =~ /href="([^h].+?)"/s ) { # not a href="http://
-		$retval .= $`.'href="'.fixUrl($1).'"'; # prematch
+		$retval .= $`.'href="'.$self->fixUrl($1).'"'; # prematch
 		$text = $'; # postmatch
 	}	
 	
@@ -300,7 +302,7 @@ sub extractSummary {
 			# remove link titles
 			$summary =~ s/(<a[^<>]+)title="[^<>"]*"/$1/g;
 			$summary =~ s/ >/>/g;
-			$summary = fixUrls($summary);
+			$summary = $self->fixUrls($summary);
 			
 			if( length $summary > $MAX_SUMMARY_LEN ) { # cutting off if too long
 				my $cut;

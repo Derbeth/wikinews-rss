@@ -27,13 +27,14 @@ my $ERROR_CLEAR_DELAY=20;
 #   $source - like 'Szablon:Najnowszewiadomości'
 #   $source_type - 'CATEGORY' or 'HTML'
 sub new {
-	my ($class, $check_interval_mins, $wiki_base, $source, $source_type) = @_;
+	my ($class, $check_interval_mins, $wiki_base, $domain, $source, $source_type) = @_;
 
 	my $self = {};
 	bless($self, "NewsSource");
 	
 	$self->{'source_type'} = $source_type || 'HTML';
 	$self->{'wiki_base'} = $wiki_base;
+	$self->{'domain'} = $domain;
 	$self->{'source'} = $source;
 
 	$source = uri_escape_utf8($source);

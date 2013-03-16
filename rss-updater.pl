@@ -67,7 +67,7 @@ Status::set_status(0); # started
 print "rss-updater version $Settings::VERSION running.\n";
 print "News are accepted after being present for at least $Settings::NEWS_ACCEPT_TIME minutes\n";
 
-my @feed_defs = new FeedDefinitionReader()->read();
+my @feed_defs = new FeedDefinitionReader('sources.yml')->read();
 my @news_managers;
 
 foreach my $feed_def (@feed_defs) {
@@ -78,7 +78,7 @@ foreach my $feed_def (@feed_defs) {
 }
 print "Hit Control+C to exit.\n\n";
 
-sleep 3;
+sleep 5;
 while( 1 ) {
 	foreach my $news_manager (@news_managers) { $news_manager->tick(); }
 	sleep(60);
