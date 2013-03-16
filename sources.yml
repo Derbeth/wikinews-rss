@@ -6,7 +6,6 @@ sources:
     source: Szablon:Najnowsze_wiadomości
     title: Wikinews Polska
     page_url: http://pl.wikinews.org/
-    link_prefix: http://pl.wikinews.org
     domain: pl.wikinews.org
     language: pl
     feed_link: http://tools.wikimedia.pl/~derbeth/wikinews.xml
@@ -27,7 +26,6 @@ sources:
     source: Nauka
     title: Wikinews Polska - Nauka
     page_url: http://pl.wikinews.org/wiki/Portal:Nauka
-    link_prefix: http://pl.wikinews.org
     domain: pl.wikinews.org
     language: pl
     feed_link: http://tools.wikimedia.pl/~derbeth/wikinews-nauka.xml

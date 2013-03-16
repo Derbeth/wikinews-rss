@@ -38,10 +38,13 @@ sub read {
 			$doc->{logo}->{width},
 			$doc->{logo}->{height});
 		$feed->setCopyright($doc->{copyright});
+
 		my $check_interval = $doc->{check_interval};
 		$check_interval = $Settings::FORCED_FEED_CHECK_INTERVAL if $Settings::FORCED_FEED_CHECK_INTERVAL;
+		my $link_prefix = $doc->{link_prefix} || "http://$doc->{domain}";
+
 		my $news_source = new NewsSource($check_interval,
-			$doc->{link_prefix},
+			$link_prefix,
 			$doc->{domain},
 			$doc->{source},
 			$doc->{source_type});
