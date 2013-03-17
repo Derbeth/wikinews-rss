@@ -98,7 +98,7 @@ sub fetchDetails {
 	$self->parseInfoResponse($info_json);
 	$self->parseRevisionsResponse($revisions_json);
 
-	$self->fetchSummary();
+	$self->fetchSummary() if !$self->{'fetch_error'};
 
 	return !$self->{'fetch_error'};
 }
