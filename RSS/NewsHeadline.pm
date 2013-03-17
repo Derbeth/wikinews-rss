@@ -10,10 +10,10 @@
 #   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
 #            [[n:pl:User:Derbeth]]
 
-package NewsHeadline;
+package RSS::NewsHeadline;
 
 use Derbeth::Wikipedia;
-use Settings;
+use RSS::Settings;
 
 use strict;
 use English;
@@ -65,7 +65,7 @@ sub new {
    my ($classname,$source,$title,$link,$time) = @_;
 
    my $self = {};
-   bless($self, "NewsHeadline");
+   bless($self, $classname);
 
    $self->{'title'} = $title || die "expected news title!";
    $self->{'link'} = $link;
@@ -99,7 +99,7 @@ sub fetchDetails {
 	$self->{'fetch_error'} = 0;
 
 	my $info_url = $self->{'api_base_url'} . "&prop=info&inprop=url";
-	my $order = $Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
+	my $order = $RSS::Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
 	my $revisions_url = $self->{'api_base_url'} . "&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1";
 
 	my $info_json = $self->queryApi($info_url);
@@ -118,7 +118,7 @@ sub queryApi {
 
 	my $response = Derbeth::Web::get_page($url);
 	if ($response !~ /"query"/) {
-		print "Wrong API response for $url: $response\n" if $Settings::DEBUG_MODE;
+		print "Wrong API response for $url: $response\n" if $RSS::Settings::DEBUG_MODE;
 		return '';
 	}
 	return $response;
@@ -152,11 +152,11 @@ sub parseRevisionsResponse {
 		my $parsed = $self->timestampToTime($timestamp);
 		if ($parsed) {
 			$self->{'time'} = $parsed;
-			if ($Settings::DEBUG_MODE) {
+			if ($RSS::Settings::DEBUG_MODE) {
 				print 'read time for ', encode_utf8($self->{'title'}), ': ',
 					scalar(CORE::localtime($self->{'time'})), "\n";
 			}
-		} elsif ($Settings::DEBUG_MODE) {
+		} elsif ($RSS::Settings::DEBUG_MODE) {
 			print "Cannot parse date: $timestamp\n";
 		}
 	}

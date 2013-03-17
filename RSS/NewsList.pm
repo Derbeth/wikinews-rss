@@ -10,9 +10,9 @@
 #   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
 #            [[n:pl:User:Derbeth]]
 
-package NewsList;
+package RSS::NewsList;
 
-use NewsListIterator;
+use RSS::NewsListIterator;
 
 use strict 'vars';
 
@@ -39,7 +39,7 @@ sub new {
 	$size = $DEFAULT_SIZE unless defined $size;
 	
 	my $self = {};
-   bless($self, "NewsList");
+   bless($self, $classname);
    
    $self->{'news'} = [];
    $self->{'size'} = $size;
@@ -165,7 +165,7 @@ sub reverseList {
 sub getIterator {
 	my $self = pop @_;
 	
-	return new NewsListIterator($self);
+	return new RSS::NewsListIterator($self);
 }
 
 # Function: getAgeMinutes

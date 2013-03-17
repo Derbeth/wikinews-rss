@@ -1,8 +1,8 @@
-package NewsSource;
+package RSS::NewsSource;
 use strict 'vars';
 use utf8;
 
-use Status;
+use RSS::Status;
 use Derbeth::Web 0.5.0;
 use Derbeth::Wikipedia;
 
@@ -30,7 +30,7 @@ sub new {
 	my ($class, $check_interval_mins, $wiki_base, $domain, $source, $source_type, $max_new_news) = @_;
 
 	my $self = {};
-	bless($self, "NewsSource");
+	bless($self, $class);
 	
 	$self->{'source_type'} = $source_type || 'HTML';
 	$self->{'wiki_base'} = $wiki_base || die "missing wiki_base";
@@ -74,7 +74,7 @@ sub fetch_titles {
 		@titles = $self->get_titles_from_html($self->fetch_as_html_page());
 	}
 
-	if ($Settings::DEBUG_MODE) {
+	if ($RSS::Settings::DEBUG_MODE) {
 		print STDERR "Fetched ", scalar(@titles), " news from ", encode_utf8($self->{source}), ": ", brief_titles_list(@titles), "\n";
 	}
 
@@ -112,14 +112,14 @@ sub crop_after {
 #   server. If it exceeds <$MAX_FETCH_FAILURES>, script dies.
 sub fetch_as_html_page {
 	my($self) = @_;
-	if ($Settings::READ_LIST_FROM_FILE) {
-		my $input_file = $Settings::HEADLINES_FILE;
+	if ($RSS::Settings::READ_LIST_FROM_FILE) {
+		my $input_file = $RSS::Settings::HEADLINES_FILE;
 		print "Reading new list from file $input_file\n";
 		return Derbeth::Web::get_page_from_file($input_file);
 	}
 	my $error_msg = '';
 
-	Derbeth::Web::purge_page($self->{'news_list_url'}) if $Settings::PURGE_NEWS_LIST;
+	Derbeth::Web::purge_page($self->{'news_list_url'}, $self->{'wiki_base'}) if $RSS::Settings::PURGE_NEWS_LIST;
 	my $page = Derbeth::Web::get_page($self->{'news_list_url'});
 
 	if( $page eq '' ) { $error_msg = "cannot fetch news list from server"; }
@@ -136,7 +136,7 @@ sub fetch_as_html_page {
 		return '';
 	}
 
-	Derbeth::Web::save_page_to_file($page, $Settings::HEADLINES_FILE);
+	Derbeth::Web::save_page_to_file($page, $RSS::Settings::HEADLINES_FILE);
 	return $page;
 }
 

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use NewsHeadline;
+use RSS::NewsHeadline;
 use Derbeth::Wikipedia;
 use Derbeth::Web;
 
@@ -7,7 +7,7 @@ use strict 'vars';
 
 $Derbeth::Web::cache_pages = 1;
 
-my $news = new NewsHeadline('tit','link',time);
+my $news = new RSS::NewsHeadline('tit','link',time);
 
 #open(FILE,"wampiriada.htm") or die "nie otwarlem pliku";
 

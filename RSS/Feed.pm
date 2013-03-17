@@ -3,10 +3,10 @@
 # Class: Feed
 #   class for saving information as newsfeed (f.e. RSS)
 
-package Feed;
+package RSS::Feed;
 
-use FeedEntry;
-use Settings;
+use RSS::FeedEntry;
+use RSS::Settings;
 
 use Carp;
 use Encode;
@@ -19,7 +19,7 @@ use strict;
 
 # Const: $GENERATOR_NAME
 #   string describing generator of the feed (can be empty)
-my $GENERATOR_NAME = "Wikinews RSS bot by Derbeth ver. ".$Settings::VERSION;
+my $GENERATOR_NAME = "Wikinews RSS bot by Derbeth ver. ".$RSS::Settings::VERSION;
 
 ####################################
 # Group: Functions
@@ -47,7 +47,7 @@ sub new {
     $encoding = 'utf-8' unless defined($encoding);
 
     my $self = {};
-    bless($self, "Feed");
+    bless($self, $classname);
    
     $self->{'filename'} = $filename;
     $self->{'title'} = $title;
@@ -144,13 +144,13 @@ sub formatTime {
 #   $guid - GUID of the news item (optional)
 #
 # Remarks:
-#   if there are already <$Settings::MAX_ENTRIES>, oldest one is deleted to make place for
+#   if there are already <$RSS::Settings::MAX_ENTRIES>, oldest one is deleted to make place for
 #   new
 sub addEntry {
 	my($self,$title,$date,$link,$summary,$guid) = @_;
 	
 	#if( $#{$self->{'entries'}} > $MAX_ENTRIES ) { return 0; } # don't add
-	if( $#{$self->{'entries'}} >= $Settings::MAX_ENTRIES ) {
+	if( $#{$self->{'entries'}} >= $RSS::Settings::MAX_ENTRIES ) {
 		shift @{$self->{'entries'}}; # remove oldest
 	}
 	
@@ -186,7 +186,7 @@ sub replaceEntry {
 sub _createEntry {
 	my($self,$title,$date,$link,$summary,$guid) = @_;
 	$date = $self->formatTime($date);
-	new FeedEntry($title,$date,$link,$summary,$guid);
+	new RSS::FeedEntry($title,$date,$link,$summary,$guid);
 }
 
 sub removeEntry {

@@ -7,7 +7,7 @@
 # Author:
 #   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
 #            [[n:pl:User:Derbeth]]
-package FeedEntry;
+package RSS::FeedEntry;
 
 # Constructor: new
 #   simply fills feed data
@@ -22,7 +22,7 @@ sub new {
     my($classname,$title,$date,$link,$summary,$guid) = @_;
 
     my $self = {};
-    bless($self, "FeedEntry");
+    bless($self, $classname);
 
     $self->{'title'} = $title;
     $self->{'date'} = $date;

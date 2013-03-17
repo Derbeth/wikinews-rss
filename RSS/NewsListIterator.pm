@@ -1,15 +1,16 @@
 #!/usr/bin/perl
 
-package NewsListIterator;
+package RSS::NewsListIterator;
 
 use strict 'vars';
 
 sub new {
 	#pop @_; # class name
-	my $list = \pop @_;
+	my $classname = shift @_;
+	my $list = \shift @_;
 	
 	my $self = {};
-   bless($self, "NewsListIterator");
+   bless($self, $classname);
    
    $self->{'list'} = $list;
    $self->{'position'} = 0;

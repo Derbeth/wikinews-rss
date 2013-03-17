@@ -1,10 +1,10 @@
-package FeedDefinitionReader;
+package RSS::FeedDefinitionReader;
 use strict 'vars';
 use utf8;
 
-use Feed;
-use NewsSource;
-use Settings;
+use RSS::Feed;
+use RSS::NewsSource;
+use RSS::Settings;
 use YAML::Syck qw'LoadFile';
 use Derbeth::Web;
 
@@ -26,7 +26,7 @@ sub read {
 	close($fh);
 	my @defs;
 	foreach my $doc (@{$all->{sources}}) {
-		my $feed = new Feed($doc->{output_file},
+		my $feed = new RSS::Feed($doc->{output_file},
 			$doc->{title},
 			$doc->{page_url},
 			$doc->{description},
@@ -40,11 +40,11 @@ sub read {
 		$feed->setCopyright($doc->{copyright});
 
 		my $check_interval = $doc->{check_interval};
-		$check_interval = $Settings::FORCED_FEED_CHECK_INTERVAL if $Settings::FORCED_FEED_CHECK_INTERVAL;
+		$check_interval = $RSS::Settings::FORCED_FEED_CHECK_INTERVAL if $RSS::Settings::FORCED_FEED_CHECK_INTERVAL;
 		my $link_prefix = $doc->{link_prefix} || "http://$doc->{domain}";
-		my $max_new_news = $doc->{max_new_news} || $Settings::DEFAULT_MAX_NEW_NEWS;
+		my $max_new_news = $doc->{max_new_news} || $RSS::Settings::DEFAULT_MAX_NEW_NEWS;
 
-		my $news_source = new NewsSource($check_interval,
+		my $news_source = new RSS::NewsSource($check_interval,
 			$link_prefix,
 			$doc->{domain},
 			$doc->{source},

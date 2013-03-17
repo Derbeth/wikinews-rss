@@ -3,7 +3,7 @@
 use strict;
 use Test::Assert ':all';
 
-use NewsHeadline;
+use RSS::NewsHeadline;
 
 my $test_in = 'test/data/';
 
@@ -19,7 +19,7 @@ sub test_vulgar {
 
 	foreach my $t (@testdata) {
 		my ($title, $summary) = split /\|/, $t;
-		my $news = new NewsHeadline({wiki_base=>'foo'}, $title);
+		my $news = new RSS::NewsHeadline({wiki_base=>'foo'}, $title);
 		$news->{'summary'} = $summary;
 		die "should be censored: $t" unless $news->wasCensored();
 	}
@@ -28,7 +28,7 @@ sub test_vulgar {
 }
 
 sub test_parseInfoResponse {
-	my $news = new NewsHeadline({wiki_base=>'foo',domain=>'pl.wikinews.org'},'foo','link');
+	my $news = new RSS::NewsHeadline({wiki_base=>'foo',domain=>'pl.wikinews.org'},'foo','link');
 	open(IN,"$test_in/info_response.json") or die;
 	my @lines = <IN>;
 	my $response = join('',@lines);
@@ -42,7 +42,7 @@ sub test_parseInfoResponse {
 }
 
 sub test_parseRevisionsResponse {
-	my $news = new NewsHeadline({wiki_base=>'foo'},'foo','link');
+	my $news = new RSS::NewsHeadline({wiki_base=>'foo'},'foo','link');
 	open(IN,"$test_in/rev_response.json") or die;
 	my @lines = <IN>;
 	my $response = join('',@lines);

@@ -8,15 +8,15 @@
 #   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
 #            [[n:pl:User:Derbeth]]
 
-package NewsManager;
+package RSS::NewsManager;
 use strict 'vars';
 
-use Feed;
-use NewsHeadline;
-use NewsListIterator;
-use NewsList;
-use Settings;
-use Status;
+use RSS::Feed;
+use RSS::NewsHeadline;
+use RSS::NewsListIterator;
+use RSS::NewsList;
+use RSS::Settings;
+use RSS::Status;
 use Derbeth::Web 0.5.0;
 
 use Encode;
@@ -43,10 +43,10 @@ sub new {
 	my ($class, $feed_ref, $news_source) = @_;
 
 	my $self = {};
-	bless($self, "NewsManager");
+	bless($self, $class);
 
-	$self->{'pending'} = new NewsList($MAX_PENDING); # news waiting for confirmation
-	$self->{'saved'} = new NewsList($MAX_SAVED);     # list already saved in feed
+	$self->{'pending'} = new RSS::NewsList($MAX_PENDING); # news waiting for confirmation
+	$self->{'saved'} = new RSS::NewsList($MAX_SAVED);     # list already saved in feed
 	$self->{'feed'} = $feed_ref;
 	$self->{'news_source'} = $news_source;
 
@@ -69,9 +69,9 @@ sub tick {
 sub processNewNews {
 	my($self, @titles) = @_;
 
-	my $new = new NewsList;
+	my $new = new RSS::NewsList;
 	foreach my $title (@titles) {
-		$new->add(new NewsHeadline($self->{news_source}, $title));
+		$new->add(new RSS::NewsHeadline($self->{news_source}, $title));
 	}
 	$new->reverseList(); # oldest first
 
@@ -82,7 +82,7 @@ sub processNewNews {
 	{
 		my $news = $iterator->getNext();
 
-		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) >= $Settings::NEWS_ACCEPT_TIME )
+		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) >= $RSS::Settings::NEWS_ACCEPT_TIME )
 		{
 			$self->saveNews($news);
 
@@ -108,7 +108,7 @@ sub processNewNews {
 		$self->removeNews($news);
 	}
 
-	$self->{'pending'}->removeOlderThan($Settings::NEWS_ACCEPT_TIME);
+	$self->{'pending'}->removeOlderThan($RSS::Settings::NEWS_ACCEPT_TIME);
 
 	if( $self->{'feed_changed'} == 1 )
 	{
@@ -121,7 +121,7 @@ sub processNewNews {
 	}
 
 	set_status(1, $self->{'last_saved'});
-	if ($Settings::DEBUG_MODE) {
+	if ($RSS::Settings::DEBUG_MODE) {
 		print "\n", scalar(localtime()), ' ', encode_utf8($self->{news_source}->{source}), ' | ';
 		print "Accepted: ", encode_utf8($self->{'saved'}->toString(1)), "\n";
 		print "Pending: ", encode_utf8($self->{'pending'}->toString(1)), "\n";
@@ -175,7 +175,7 @@ sub removeNews {
 # marks it for refresh if needed
 sub refreshNews {
 	my($self,$news) = @_;
-	if ($Settings::DEBUG_MODE) {
+	if ($RSS::Settings::DEBUG_MODE) {
 		print "Checking if needs refresh: ", encode_utf8($news->toString(1)), "\n";
 	}
 	if ($news->refresh()) {

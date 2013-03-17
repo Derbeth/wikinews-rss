@@ -12,10 +12,10 @@ use Encode;
 use Getopt::Long;
 use Pod::Usage;
 
-use NewsManager;
-use FeedDefinitionReader;
-use Settings;
-use Status;
+use RSS::NewsManager;
+use RSS::FeedDefinitionReader;
+use RSS::Settings;
+use RSS::Status;
 use Derbeth::Web 0.5.0;
 
 use strict;
@@ -39,12 +39,12 @@ GetOptions(
 	'help|h' => \$show_help,
 ) or pod2usage('-verbose'=>1,'-exitval'=>1);
 pod2usage('-verbose'=>2,'-noperldoc'=>1) if ($show_help);
-Settings::set_debug_mode() if $debug_mode;
+RSS::Settings::set_debug_mode() if $debug_mode;
 
 $Derbeth::Web::user_agent = 'DerbethBot for Wikinews RSS';
 $Derbeth::Web::max_files_in_cache=150;
-$Derbeth::Web::debug=$Settings::DEBUG_MODE;
-if ($Settings::DEBUG_MODE) {
+$Derbeth::Web::debug=$RSS::Settings::DEBUG_MODE;
+if ($RSS::Settings::DEBUG_MODE) {
 	Derbeth::Web::enable_caching(1);
 }
 
@@ -58,23 +58,23 @@ if ($Settings::DEBUG_MODE) {
 ############################################################################
 
 # sets close event handler
-$SIG{INT} = $SIG{TERM} = sub { Status::set_status(2); exit; };
+$SIG{INT} = $SIG{TERM} = sub { RSS::Status::set_status(2); exit; };
 # sets crash event handler
-$SIG{__DIE__} = sub { print @_; Status::set_status(3); exit; };
+$SIG{__DIE__} = sub { print @_; RSS::Status::set_status(3); exit; };
 
-Status::set_status(0); # started
+RSS::Status::set_status(0); # started
 
-print "rss-updater version $Settings::VERSION running.\n";
-print "News are accepted after being present for at least $Settings::NEWS_ACCEPT_TIME minutes\n";
+print "rss-updater version $RSS::Settings::VERSION running.\n";
+print "News are accepted after being present for at least $RSS::Settings::NEWS_ACCEPT_TIME minutes\n";
 
-my @feed_defs = new FeedDefinitionReader('sources.yml')->read();
+my @feed_defs = new RSS::FeedDefinitionReader('sources.yml')->read();
 my @news_managers;
 
 foreach my $feed_def (@feed_defs) {
 	my $feed = $feed_def->{'feed'};
 	my $news_source = $feed_def->{'news_source'};
 	print encode_utf8("Feed from $news_source->{wiki_base}=>$news_source->{source} read every $news_source->{check_mins} mins to $feed->{filename}\n");
-	push @news_managers, new NewsManager($feed, $news_source);
+	push @news_managers, new RSS::NewsManager($feed, $news_source);
 }
 print "Hit Control+C to exit.\n\n";
 

@@ -1,4 +1,4 @@
-package Status;
+package RSS::Status;
 
 require Exporter;
 
@@ -8,7 +8,7 @@ use strict;
 my $using_sendmail = eval "use Mail::Sendmail; 1";
 use Sys::Hostname;
 
-use Settings;
+use RSS::Settings;
 
 our @ISA = qw/Exporter/;
 our @EXPORT = qw/set_status/;
@@ -34,7 +34,7 @@ sub set_status {
 	
 	my $desc;
 	
-	unless( open(STATUS, "> $Settings::STATUS_FILE") ) {
+	unless( open(STATUS, "> $RSS::Settings::STATUS_FILE") ) {
 		print "cannot open status file for writing: $!\n";
 		return;
 	}
@@ -81,7 +81,7 @@ HTML
 #   sends and e-mail notifying administrator of bot crash
 sub notify_admin {
 	my $hostname = hostname;
-	my %mail = (To => $Settings::ADMIN_MAIL,
+	my %mail = (To => $RSS::Settings::ADMIN_MAIL,
 		From => "\"Wikinews RSS Bot\" <$ENV{USER}\@$hostname>",
 		'Content-Type' => 'text/plain; charset=utf-8',
 		Subject => 'RSS bot dead',

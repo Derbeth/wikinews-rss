@@ -2,7 +2,7 @@
 # Package: Settings
 #   stores settings for whole project
 
-package Settings;
+package RSS::Settings;
 
 use strict;
 use utf8;
@@ -75,12 +75,12 @@ $ADMIN_MAIL = 'der'.'beth' . '@in'.'teria.pl';
 $PURGE_NEWS_LIST = 1;
 
 sub set_debug_mode {
-	$Settings::PURGE_NEWS_LIST = 0;
-	$Settings::FORCED_FEED_CHECK_INTERVAL = 1;
-	$Settings::NEWS_ACCEPT_TIME = 1;
+	$PURGE_NEWS_LIST = 0;
+	$FORCED_FEED_CHECK_INTERVAL = 1;
+	$NEWS_ACCEPT_TIME = 1;
 
-	$Settings::DEBUG_MODE = 1;
-	# $Settings::READ_LIST_FROM_FILE = 1;
+	$DEBUG_MODE = 1;
+	# $READ_LIST_FROM_FILE = 1;
 
 	print STDERR "Debug settings used\n";
 }
