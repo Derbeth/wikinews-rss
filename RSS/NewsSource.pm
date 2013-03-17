@@ -2,6 +2,7 @@ package RSS::NewsSource;
 use strict 'vars';
 use utf8;
 
+use RSS::PolishWikinewsSummaryExtractor;
 use RSS::Status;
 use Derbeth::Web 0.5.0;
 use Derbeth::Wikipedia;
@@ -37,6 +38,8 @@ sub new {
 	$self->{'domain'} = $domain || die "missing domain";
 	$self->{'source'} = $source || die "missing source";
 	$self->{'max_new_news'} = $max_new_news || die "missing max_new_news";
+	
+	$self->{'summary_extractor'} = new RSS::PolishWikinewsSummaryExtractor($self->{'wiki_base'});
 
 	$source = uri_escape_utf8($source);
 	if ($self->{'source_type'} eq 'CATEGORY') {

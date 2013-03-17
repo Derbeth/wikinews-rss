@@ -8,7 +8,7 @@ use utf8;
 use Exporter;
 
 use vars qw($ADMIN_MAIL $FORCED_FEED_CHECK_INTERVAL $DATE_FROM_NEWEST_REVISION
-	$DEBUG_MODE
+	$DEBUG_MODE $MAX_SUMMARY_LEN
 	$READ_LIST_FROM_FILE $HEADLINES_FILE
 	$MAX_ENTRIES $DEFAULT_MAX_NEW_NEWS $NEWS_ACCEPT_TIME
 	$PURGE_NEWS_LIST $STATUS_FILE $VERSION);
@@ -71,6 +71,10 @@ $ADMIN_MAIL = 'der'.'beth' . '@in'.'teria.pl';
 # if true, on each check the bot will clear MediaWiki cache for the page
 # containing news list
 $PURGE_NEWS_LIST = 1;
+
+# Const: $MAX_SUMMARY_LEN
+#   maximal length of summary text (in characters)
+$MAX_SUMMARY_LEN = 2000;
 
 sub set_debug_mode {
 	$PURGE_NEWS_LIST = 0;
