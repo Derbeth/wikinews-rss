@@ -68,17 +68,19 @@ sub processNewNews {
 
 	$self->{'feed_changed'} = 0;
 
+	my @to_save;
 	foreach my $news (@{$new->{news}})
 	{
 		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) >= $RSS::Settings::NEWS_ACCEPT_TIME )
 		{
-			$self->saveNews($news);
+			push @to_save, $news;
 
 		} elsif( ! $self->{'pending'}->contains($news) && ! $self->{'saved'}->contains($news) )
 		{
 			$self->addPending($news);
 		}
 	}
+	$self->saveNews(@to_save);
 
 	my @to_remove; # news to be removed from feed
 	my @to_refresh;
@@ -123,21 +125,27 @@ sub processNewNews {
 #
 #   If news is vulgar, it won't be added to the news feed.
 sub saveNews {
-	my($self, $news) = @_;
+	my($self, @to_save) = @_;
 
-	$self->{'pending'}->remove($news);
-	$self->{'saved'}->add($news);
+	$self->{news_resolver}->fetch_details(@to_save);
 
-	my $fetch_successful = $news->fetchDetails();
+	foreach my $news (@to_save) {
+		$self->{'pending'}->remove($news);
+		$self->{'saved'}->add($news);
+		
+		$self->{news_resolver}->fetch_summary($news) unless $news->{fetch_error};
+		my $fetch_successful = $news->{fetch_error};
 
-	if (!$fetch_successful) {
-		print "Won't add ", encode_utf8($news->{'title'}), " because its text cannot be fetched.\n";
-	} elsif( my $vulgarism = $news->wasCensored() ) {
-		print "Won't add ", encode_utf8($news->{'title'}), ": contains vulgarism '$vulgarism'\n";
-	} else {
-		$self->{'feed'}->addEntry( $self->newsToFeed($news) );
-		$self->{'feed_changed'} = 1;
+		if (!$fetch_successful) {
+			print "Won't add ", encode_utf8($news->{'title'}), " because its text cannot be fetched.\n";
+		} elsif( my $vulgarism = $news->wasCensored() ) {
+			print "Won't add ", encode_utf8($news->{'title'}), ": contains vulgarism '$vulgarism'\n";
+		} else {
+			$self->{'feed'}->addEntry( $self->newsToFeed($news) );
+			$self->{'feed_changed'} = 1;
+		}
 	}
+
 }
 
 sub newsToFeed {

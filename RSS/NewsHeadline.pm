@@ -111,6 +111,7 @@ sub queryApi {
 
 sub parseInfoResponse {
 	my ($self, $json) = @_;
+	# TODO handle 'missing' param
 	if ($json =~ m!"pageid" *: *(\d+)!) {
 		# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
 		my $pageid = $1;
@@ -195,16 +196,8 @@ sub equals {
 	return( $self->{'title'} eq $other->{'title'} );
 }
 
-# Function: fetchSummary
-#   fetches news summary from website
-sub fetchSummary {
-	my ($self) = @_;
-	
-	my $page_text = Derbeth::MediaWikiApi::rendered_page($self->{source}->{wiki_base}, $self->{title});
-	unless(defined $page_text) {
-		$self->{'fetch_error'} = 1;
-		return 0;
-	}
+sub process_page_text {
+	my ($self, $page_text) = @_;
 
 	my $summary = $self->{source}->{summary_extractor}->extract($page_text);
 	if ($summary) {
