@@ -1,15 +1,5 @@
-#!/usr/bin/perl
-#
 # Class: NewsList
 #   list of <NewsHeadline> objects
-#
-# Project:
-#   rss-updater (see for license & other info)
-#
-# Author:
-#   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
-#            [[n:pl:User:Derbeth]]
-
 package RSS::NewsList;
 
 use strict 'vars';

@@ -1,15 +1,5 @@
-#!/usr/bin/perl
-#
 # Class: NewsHeadline
 #   represents news headline: title, link and time
-#
-# Project:
-#   rss-updater (see for license & other info)
-#
-# Author:
-#   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
-#            [[n:pl:User:Derbeth]]
-
 package RSS::NewsHeadline;
 
 use Derbeth::Wikipedia;

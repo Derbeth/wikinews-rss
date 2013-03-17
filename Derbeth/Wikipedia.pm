@@ -1,4 +1,3 @@
-#
 # Package: Derbeth::Wikipedia.pm
 #   modu z funkcjami dla Wikipedii
 #

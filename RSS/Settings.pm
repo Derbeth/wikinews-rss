@@ -1,7 +1,5 @@
-#!/usr/bin/perl
 # Package: Settings
 #   stores settings for whole project
-
 package RSS::Settings;
 
 use strict;

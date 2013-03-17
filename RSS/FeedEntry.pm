@@ -1,12 +1,5 @@
 # Class: FeedEntry
 #   represents single news in RSS feed
-#
-# Project:
-#   rss-updater (see for license & other info)
-#
-# Author:
-#   Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>
-#            [[n:pl:User:Derbeth]]
 package RSS::FeedEntry;
 
 # Constructor: new

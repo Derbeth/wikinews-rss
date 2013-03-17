@@ -102,12 +102,11 @@ rss-updater.pl - updates Wikinews RSS channel
 
 =head1 LICENCE
 
- 3-clause BSD, <http://www.opensource.org/licenses/bsd-license.php>
-
+ ISC license, see LICENCE
 
 =head1 AUTHOR
 
- Derbeth, <http://derbeth.w.interia.pl/>, <derbeth@interia.pl>,
- [[n:pl:User:Derbeth]]
+ Derbeth, <https://github.com/Derbeth>, <derbeth@interia.pl>,
+ <http://pl.wikinews.org/wiki/User:Derbeth>
 
 =cut

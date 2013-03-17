@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-#
 # Class: Feed
 #   class for saving information as newsfeed (f.e. RSS)
 
