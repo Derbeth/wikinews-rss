@@ -2,7 +2,6 @@
 #   represents news headline: title, link and time
 package RSS::NewsHeadline;
 
-use Derbeth::Wikipedia;
 use RSS::Settings;
 
 use strict;
@@ -11,6 +10,7 @@ use Time::Local;
 use Time::localtime;
 use URI::Escape qw/uri_escape_utf8/;
 use Encode;
+use YAML::Any; # TODO move this away
 
 ############################################################################
 # Group: Settings 
@@ -200,13 +200,20 @@ sub equals {
 sub fetchSummary {
 	my ($self) = @_;
 	
-	my $page = Derbeth::Wikipedia::pobierz_zawartosc_strony($self->{'link'});
-	if ($page !~ /\w/) {
+	my $parse_url = $self->{source}->{wiki_base}."/w/api.php?action=parse&format=yaml&prop=text|revid&disablepp=true&page=".$self->{title};
+	my $parse_response = Derbeth::Web::get_page($parse_url);
+	unless($parse_response) {
+		$self->{'fetch_error'} = 1;
+		return 0;
+	}
+	my $parsed = Load($parse_response);
+	my $page_text = $parsed->{parse}->{text}->{'*'};
+	unless($page_text && $parsed->{parse}->{revid}) {
 		$self->{'fetch_error'} = 1;
 		return 0;
 	}
 
-	my $summary = $self->{source}->{summary_extractor}->extract($page);
+	my $summary = $self->{source}->{summary_extractor}->extract($page_text);
 	if ($summary) {
 		$self->{'summary'} = $summary;
 	} else { # error
