@@ -37,6 +37,11 @@ sub fetch_titles {
 #   server. If it exceeds <$MAX_FETCH_FAILURES>, script dies.
 sub fetch_as_html_page {
 	my($self) = @_;
+	return cutoff($self->get_from_web());
+}
+
+sub get_from_web {
+	my ($self) = @_;
 	if ($RSS::Settings::READ_LIST_FROM_FILE) {
 		my $input_file = $RSS::Settings::HEADLINES_FILE;
 		print "Reading new list from file $input_file\n";
@@ -60,6 +65,22 @@ sub fetch_as_html_page {
 	return $page;
 }
 
+sub cutoff {
+	my ($content) = @_;
+	if( $content eq '' ) { return (); }
+	if ($content =~ /<!-- *(bodytext|bodycontent|start content) *-->/) {
+		$content = $';
+	} else {
+		print STDERR "WARN: cannot cut off begin\n";
+	}
+	if ($content =~ /<div class="printfooter">/) {
+		$content = $`;
+	} else {
+		print STDERR "WARN: cannot cut off end\n";
+	}
+	return $content;
+}
+
 # Function: get_titles_from_html
 #   retrieves news headlines from news list
 #
@@ -73,18 +94,6 @@ sub fetch_as_html_page {
 #   reads only first <$self->{max_new_news}> links
 sub get_titles_from_html {
 	my ($self,$content) = @_;
-
-	if( $content eq '' ) { return (); }
-	if ($content =~ /<!-- *(bodytext|bodycontent|start content) *-->/) {
-		$content = $';
-	} else {
-		print STDERR "WARN: cannot cut off begin\n";
-	}
-	if ($content =~ /<div class="printfooter">/) {
-		$content = $`;
-	} else {
-		print STDERR "WARN: cannot cut off end\n";
-	}
 
 	my $count = 0;
 	my @titles;
