@@ -45,6 +45,7 @@ sub test_get_page_encoding {
 	assert_equals($fresh_page_text, $cached_page_text);
 
 	assert_equals(1, pages_in_dir($temp_cache_dir), "should read page from cache and not add any new cached files");
+	print "test_get_page_encoding: success!\n";
 }
 
 # ==== Helper functions

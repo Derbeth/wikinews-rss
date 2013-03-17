@@ -62,17 +62,14 @@ push @VULGARISMS, 'Ten artykuł jest właśnie', 'Strona do natychmiastowego ska
 # Returns:
 #   reference to new <NewsHeadline> object
 sub new {
-	my ($classname,$source,$title,$link,$time) = @_;
+   my ($classname,$source,$title,$link,$time) = @_;
 
-	if( ! defined $title ) { die "expected news title!"; }
-	if( ! defined $time ) { $time = time; }
-
-	my $self = {};
+   my $self = {};
    bless($self, "NewsHeadline");
 
-   $self->{'title'} = $title;
+   $self->{'title'} = $title || die "expected news title!";
    $self->{'link'} = $link;
-   $self->{'time'} = $time;
+   $self->{'time'} = $time || time();
    $self->{'summary'} = '';
 
    $self->{'source'} = $source;

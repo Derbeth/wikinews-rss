@@ -5,6 +5,8 @@ use Test::Assert ':all';
 
 use NewsHeadline;
 
+my $test_in = 'test/data/';
+
 sub test_vulgar {
 	print "test_vulgar\n";
 	my @testdata = (
@@ -17,7 +19,7 @@ sub test_vulgar {
 
 	foreach my $t (@testdata) {
 		my ($title, $summary) = split /\|/, $t;
-		my $news = new NewsHeadline($title,'link',time);
+		my $news = new NewsHeadline({wiki_base=>'foo'}, $title);
 		$news->{'summary'} = $summary;
 		die "should be censored: $t" unless $news->wasCensored();
 	}
@@ -26,8 +28,8 @@ sub test_vulgar {
 }
 
 sub test_parseInfoResponse {
-	my $news = new NewsHeadline('foo','link');
-	open(IN,'testdata/info_response.json') or die;
+	my $news = new NewsHeadline({wiki_base=>'foo',domain=>'pl.wikinews.org'},'foo','link');
+	open(IN,"$test_in/info_response.json") or die;
 	my @lines = <IN>;
 	my $response = join('',@lines);
 	close(IN);
@@ -40,8 +42,8 @@ sub test_parseInfoResponse {
 }
 
 sub test_parseRevisionsResponse {
-	my $news = new NewsHeadline('foo','link');
-	open(IN,'testdata/rev_response.json') or die;
+	my $news = new NewsHeadline({wiki_base=>'foo'},'foo','link');
+	open(IN,"$test_in/rev_response.json") or die;
 	my @lines = <IN>;
 	my $response = join('',@lines);
 	close(IN);
