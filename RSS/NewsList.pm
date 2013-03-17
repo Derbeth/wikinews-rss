@@ -105,15 +105,7 @@ sub contains {
 #
 sub toString {
 	my ($self, $short) = @_;
-	my $retval = "";
-	
-# 	$retval .= "size: " . ($#{$self->{'news'}}+1) . "\n"; # DEBUG
-	my $i;
-	for($i=0; $i<=$#{$self->{'news'}}; ++$i)
-	{
-		$retval .= $self->{'news'}[$i]->toString($short) . "\n";
-	}
-	return $retval;
+	join "\n", map { $_->toString($short) } @{$self->{news}};
 }
 
 # Function: removeOlderThan
