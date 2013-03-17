@@ -1,14 +1,16 @@
 package RSS::FeedDefinitionReader;
-use strict 'vars';
+use strict;
 use utf8;
 
 use RSS::Feed;
 use RSS::NewsSource;
 use RSS::Settings;
-use YAML::Syck qw'LoadFile';
+use YAML::Any qw'LoadFile';
 use Derbeth::Web;
 
-$YAML::Syck::ImplicitUnicode = 1;
+if (YAML::Any->implementation eq 'YAML::Syck') {
+	$YAML::Any::ImplicitUnicode = 1;
+}
 
 sub new {
 	my ($class, $source) = @_;
