@@ -109,8 +109,8 @@ sub processNewNews {
 	set_status(1, $self->{'last_saved'});
 	if ($RSS::Settings::DEBUG_MODE) {
 		print "\n", scalar(localtime()), ' ', encode_utf8($self->{news_source}->{source}), ' | ';
-		print "Accepted: ", encode_utf8($self->{'saved'}->toString(1)), "\n";
-		print "Pending: ", encode_utf8($self->{'pending'}->toString(1)), "\n";
+		print "Accepted: [", encode_utf8($self->{'saved'}->toString(1)), "]\n";
+		print "Pending: [", encode_utf8($self->{'pending'}->toString(1)), "]\n";
 	}
 }
 
