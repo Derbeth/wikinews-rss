@@ -77,11 +77,8 @@ sub processNewNews {
 
 	$self->{'feed_changed'} = 0;
 
-	my $iterator = $new->getIterator();
-	while( $iterator->hasNext() == 1 )
+	foreach my $news (@{$new->{news}})
 	{
-		my $news = $iterator->getNext();
-
 		if( $self->{'pending'}->contains($news) && $self->{'pending'}->getAgeMinutes($news) >= $RSS::Settings::NEWS_ACCEPT_TIME )
 		{
 			$self->saveNews($news);
@@ -94,10 +91,8 @@ sub processNewNews {
 
 	my @to_remove; # news to be removed from feed
 	my @to_refresh;
-	$iterator = $self->{'saved'}->getIterator();
-	while( $iterator->hasNext() == 1 )
+	foreach my $news (@{$self->{saved}->{news}})
 	{
-		my $news = $iterator->getNext();
 		if( !$new->contains($news) ) {
 			push @to_remove, $news;
 		} else {

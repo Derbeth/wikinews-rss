@@ -12,8 +12,6 @@
 
 package RSS::NewsList;
 
-use RSS::NewsListIterator;
-
 use strict 'vars';
 
 ############################################################################
@@ -158,14 +156,6 @@ sub reverseList {
 	my $self = pop @_;
 	
 	@{$self->{'news'}} = reverse @{$self->{'news'}};
-}
-
-# Function: getIterator
-#
-sub getIterator {
-	my $self = pop @_;
-	
-	return new RSS::NewsListIterator($self);
 }
 
 # Function: getAgeMinutes
