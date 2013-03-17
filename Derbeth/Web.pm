@@ -35,6 +35,7 @@ use LWP;
 use Carp;
 use Digest::MD5 'md5_hex';
 use Encode;
+use HTML::Form;
 
 our @ISA = qw/Exporter/;
 our @EXPORT = qw/get_page/;
@@ -177,10 +178,10 @@ sub save_page_to_file {
 }
 
 sub purge_page {
-	my ($url) = @_;
+	my ($url, $base_uri) = @_;
 	my $page = get_page_from_web($url.'&action=purge');
 	my $ua = LWP::UserAgent->new;
-	my @forms = HTML::Form->parse($page, $Settings::LINK_PREFIX);
+	my @forms = HTML::Form->parse($page, $base_uri);
 	@forms = grep $_->attr("class") && $_->attr("class") eq "visualClear", @forms;
 	my $form = shift @forms;
 	unless($form) {
