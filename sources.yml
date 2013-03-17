@@ -4,6 +4,7 @@ sources:
     check_interval: 5
     source_type: HTML
     source: Szablon:Najnowsze_wiadomości
+    max_new_news: 15
     title: Wikinews Polska
     page_url: http://pl.wikinews.org/
     domain: pl.wikinews.org
@@ -24,6 +25,7 @@ sources:
     check_interval: 120
     source_type: CATEGORY
     source: Nauka
+    max_new_news: 10
     title: Wikinews Polska - Nauka
     page_url: http://pl.wikinews.org/wiki/Portal:Nauka
     domain: pl.wikinews.org

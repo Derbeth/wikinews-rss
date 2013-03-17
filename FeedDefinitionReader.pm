@@ -42,12 +42,14 @@ sub read {
 		my $check_interval = $doc->{check_interval};
 		$check_interval = $Settings::FORCED_FEED_CHECK_INTERVAL if $Settings::FORCED_FEED_CHECK_INTERVAL;
 		my $link_prefix = $doc->{link_prefix} || "http://$doc->{domain}";
+		my $max_new_news = $doc->{max_new_news} || $Settings::DEFAULT_MAX_NEW_NEWS;
 
 		my $news_source = new NewsSource($check_interval,
 			$link_prefix,
 			$doc->{domain},
 			$doc->{source},
-			$doc->{source_type});
+			$doc->{source_type},
+			$max_new_news);
 
 		push @defs, {'feed' => $feed, 'news_source' => $news_source};
 	}

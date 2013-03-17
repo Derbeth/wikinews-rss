@@ -27,20 +27,21 @@ my $ERROR_CLEAR_DELAY=20;
 #   $source - like 'Szablon:Najnowszewiadomości'
 #   $source_type - 'CATEGORY' or 'HTML'
 sub new {
-	my ($class, $check_interval_mins, $wiki_base, $domain, $source, $source_type) = @_;
+	my ($class, $check_interval_mins, $wiki_base, $domain, $source, $source_type, $max_new_news) = @_;
 
 	my $self = {};
 	bless($self, "NewsSource");
 	
 	$self->{'source_type'} = $source_type || 'HTML';
-	$self->{'wiki_base'} = $wiki_base;
-	$self->{'domain'} = $domain;
-	$self->{'source'} = $source;
+	$self->{'wiki_base'} = $wiki_base || die "missing wiki_base";
+	$self->{'domain'} = $domain || die "missing domain";
+	$self->{'source'} = $source || die "missing source";
+	$self->{'max_new_news'} = $max_new_news || die "missing max_new_news";
 
 	$source = uri_escape_utf8($source);
 	if ($self->{'source_type'} eq 'CATEGORY') {
 		$self->{'news_list_url'} = $wiki_base."/w/api.php?action=query&format=yaml"
-			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmlimit=".$Settings::MAX_NEW_NEWS
+			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmlimit=".$self->{'max_new_news'}
 			."&cmtitle=Category:$source";
 	} else { # HTML
 		$self->{'news_list_url'} = $wiki_base."/w/index.php?title=".$source;
@@ -70,7 +71,7 @@ sub fetch_titles {
 	if ($self->{'source_type'} eq 'CATEGORY') {
 		@titles = get_titles_from_yaml(Derbeth::Web::get_page($self->{'news_list_url'}));
 	} else {
-		@titles = get_titles_from_html($self->fetch_as_html_page());
+		@titles = $self->get_titles_from_html($self->fetch_as_html_page());
 	}
 
 	if ($Settings::DEBUG_MODE) {
@@ -149,9 +150,9 @@ sub fetch_as_html_page {
 #   list of <NewsHeadline> objects
 #
 # Remarks:
-#   reads only first <$MAX_NEW_NEWS> links
+#   reads only first <$self->{max_new_news}> links
 sub get_titles_from_html {
-	my $content = pop @_;
+	my ($self,$content) = @_;
 
 	if( $content eq '' ) { return (); }
 	if ($content =~ /<!-- *(bodytext|bodycontent|start content) *-->/) {
@@ -178,7 +179,7 @@ sub get_titles_from_html {
 			{
 				my($m1,$m2)=($1,$2);
 				push @titles, $m2;
-				if( ++$count >= $Settings::MAX_NEW_NEWS ) { last; } # end after adding $MAX_NEW_NEWS news
+				if( ++$count >= $self->{'max_new_news'} ) { last; } # end after adding $self->{'max_new_news'} news
 			}
 		} else {
 			last;
