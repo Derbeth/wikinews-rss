@@ -98,9 +98,12 @@ sub processNewNews {
 
 	if( $self->{'feed_changed'} == 1 )
 	{
-		# to minimize number of requests to server, we refresh only if there are changes
-		foreach my $news (@to_refresh) {
-			$self->refreshNews($news);
+		# to minimize number of requests to server, we refresh only if there are changes now
+		# and if there was a successful save before
+		if ($self->{'last_saved'}) {
+			foreach my $news (@to_refresh) {
+				$self->refreshNews($news);
+			}
 		}
 		$self->{'last_saved'} = scalar(localtime());
 		$self->{'feed'}->save();
@@ -129,10 +132,10 @@ sub saveNews {
 
 	if (!$fetch_successful) {
 		print "Won't add ", encode_utf8($news->{'title'}), " because its text cannot be fetched.\n";
-	} elsif( !$news->wasCensored() )
-	{
+	} elsif( my $vulgarism = $news->wasCensored() ) {
+		print "Won't add ", encode_utf8($news->{'title'}), ": contains vulgarism '$vulgarism'\n";
+	} else {
 		$self->{'feed'}->addEntry( $self->newsToFeed($news) );
-
 		$self->{'feed_changed'} = 1;
 	}
 }

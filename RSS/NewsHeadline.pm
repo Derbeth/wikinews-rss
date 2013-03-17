@@ -232,8 +232,7 @@ sub wasCensored {
 	{
 		if( $self->{'summary'} =~ /$vulgarism/si || $self->{'title'} =~ /$vulgarism/si )
 		{
-			print "vulgarism '$vulgarism' found in news '$self->{title}'\n";
-			return 1;
+			return $vulgarism;
 		}
 	}
 	return 0;
