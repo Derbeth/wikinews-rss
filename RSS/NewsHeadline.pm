@@ -3,6 +3,7 @@
 package RSS::NewsHeadline;
 
 use RSS::Settings;
+use Derbeth::MediaWikiApi;
 
 use strict;
 
@@ -10,7 +11,6 @@ use Time::Local;
 use Time::localtime;
 use URI::Escape qw/uri_escape_utf8/;
 use Encode;
-use YAML::Any; # TODO move this away
 
 ############################################################################
 # Group: Settings 
@@ -200,15 +200,8 @@ sub equals {
 sub fetchSummary {
 	my ($self) = @_;
 	
-	my $parse_url = $self->{source}->{wiki_base}."/w/api.php?action=parse&format=yaml&prop=text|revid&disablepp=true&page=".$self->{title};
-	my $parse_response = Derbeth::Web::get_page($parse_url);
-	unless($parse_response) {
-		$self->{'fetch_error'} = 1;
-		return 0;
-	}
-	my $parsed = Load($parse_response);
-	my $page_text = $parsed->{parse}->{text}->{'*'};
-	unless($page_text && $parsed->{parse}->{revid}) {
+	my $page_text = Derbeth::MediaWikiApi::rendered_page($self->{source}->{wiki_base}, $self->{title});
+	unless(defined $page_text) {
 		$self->{'fetch_error'} = 1;
 		return 0;
 	}

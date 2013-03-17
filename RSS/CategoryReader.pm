@@ -11,7 +11,7 @@ use Encode;
 
 sub new {
 	my ($class, $wiki_base, $source, $max_new_news) = @_;
-	my $self = $class->SUPER::new(@_);
+	my $self = $class->SUPER::new();
 	$source = uri_escape_utf8($source);
 	$self->{news_list_url} = $wiki_base."/w/api.php?action=query&format=yaml"
 			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmlimit=".$max_new_news
