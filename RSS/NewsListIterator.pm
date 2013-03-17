@@ -5,9 +5,7 @@ package RSS::NewsListIterator;
 use strict 'vars';
 
 sub new {
-	#pop @_; # class name
-	my $classname = shift @_;
-	my $list = \shift @_;
+	my ($classname, $list) = @_;
 	
 	my $self = {};
    bless($self, $classname);
@@ -28,14 +26,14 @@ sub hasNext {
 	my $self = pop @_;
 	#print "position: " . $self->{'position'};
 	
-	return( $self->{'position'} <= $#{${$self->{'list'}}->{'news'}} );
+	return( $self->{'position'} <= $#{$self->{'list'}->{'news'}} );
 }
 
 sub getNext {
 	my $self = pop @_;
 	my $retval;
 	
-	$retval = ${$self->{'list'}}->{'news'}[ $self->{'position'}++ ];
+	$retval = $self->{'list'}->{'news'}[ $self->{'position'}++ ];
 	return $retval;
 }
 
