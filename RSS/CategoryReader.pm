@@ -4,7 +4,7 @@ use utf8;
 
 use parent 'RSS::NewsListReader';
 
-use Derbeth::Web;
+use Derbeth::MediaWikiApi;
 use URI::Escape;
 use Unicode::Escape;
 use Encode;
@@ -12,25 +12,23 @@ use Encode;
 sub new {
 	my ($class, $wiki_base, $source, $max_new_news) = @_;
 	my $self = $class->SUPER::new();
-	$source = uri_escape_utf8($source);
-	$self->{news_list_url} = $wiki_base."/w/api.php?action=query&format=yaml"
+	$self->{source} = $source;
+	$source = uri_escape_utf8("Category:$source");
+	$self->{wiki_base} = $wiki_base;
+	$self->{query} = "/w/api.php?action=query&format=yaml"
 			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmlimit=".$max_new_news
-			."&cmtitle=Category:$source";
+			."&cmtitle=$source";
 	return $self;
 }
 
 sub fetch_titles {
 	my ($self) = @_;
-	get_titles_from_yaml(Derbeth::Web::get_page($self->{'news_list_url'}));
-}
-
-sub get_titles_from_yaml {
-	my ($text) = @_;
-	my @titles;
-	while ($text =~ /"title":"([^"}]+)"/gc) {
-		push @titles, decode_utf8(Unicode::Escape::unescape($1));
+	my $parsed_response = Derbeth::MediaWikiApi::query($self->{wiki_base}, $self->{query});
+	unless ($parsed_response) {
+		$self->report_fetch_failure("Failed to get members of category ".encode_utf8($self->{source}));
+		return ();
 	}
-	return @titles;
+	return map { $_->{title} } @{$parsed_response->{query}->{categorymembers}};
 }
 
 1;

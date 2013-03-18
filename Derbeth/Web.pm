@@ -13,6 +13,7 @@ use LWP;
 use Carp;
 use Digest::MD5 'md5_hex';
 use Encode;
+use File::Path qw(make_path remove_tree);
 use HTML::Form;
 
 our @ISA = qw/Exporter/;
@@ -39,7 +40,7 @@ _create_cache();
 # Function: clear_cache
 #   removes cache dir and recreates it
 sub clear_cache {
-	`rm -r $cache_dir`;
+	remove_tree($cache_dir);
 	_create_cache();
 }
 
