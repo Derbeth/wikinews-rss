@@ -3,6 +3,7 @@ use strict;
 use utf8;
 
 use RSS::Feed;
+use RSS::NewsResolver;
 use RSS::NewsSource;
 use RSS::Settings;
 use YAML::Any qw'LoadFile';
@@ -54,8 +55,10 @@ sub read {
 			$doc->{source},
 			$doc->{source_type},
 			$max_new_news);
+			
+		my $news_resolver = new RSS::NewsResolver($link_prefix);
 
-		push @defs, {'feed' => $feed, 'news_source' => $news_source};
+		push @defs, {'feed' => $feed, 'news_source' => $news_source, 'news_resolver' => $news_resolver};
 	}
 	return @defs;
 }

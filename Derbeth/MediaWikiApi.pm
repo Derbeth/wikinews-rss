@@ -7,6 +7,10 @@ use Derbeth::Web;
 use URI::Escape;
 use YAML::Any;
 
+if (YAML::Any->implementation eq 'YAML::Syck') {
+	$YAML::Any::ImplicitUnicode = 1;
+}
+
 sub rendered_page {
 	my ($wiki_base, $page_title) = @_;
 	my $parsed = query($wiki_base, "/w/api.php?action=parse&format=yaml&prop=text|revid&disablepp=true&page=".uri_escape_utf8($page_title));
@@ -28,6 +32,11 @@ sub query {
 		return undef;
 	}
 	return Load($api_response);
+}
+
+sub parse_yaml {
+	my ($text) = @_;
+	return Load($text);
 }
 
 1;

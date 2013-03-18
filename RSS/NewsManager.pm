@@ -8,7 +8,6 @@ use RSS::NewsHeadline;
 use RSS::NewsList;
 use RSS::Settings;
 use RSS::Status;
-use Derbeth::Web 0.5.0;
 
 use Encode;
 
@@ -31,7 +30,7 @@ my $MAX_SAVED = 30;
 ####################################
 
 sub new {
-	my ($class, $feed_ref, $news_source) = @_;
+	my ($class, $feed_ref, $news_source, $news_resolver) = @_;
 
 	my $self = {};
 	bless($self, $class);
@@ -40,6 +39,7 @@ sub new {
 	$self->{'saved'} = new RSS::NewsList($MAX_SAVED);     # list already saved in feed
 	$self->{'feed'} = $feed_ref;
 	$self->{'news_source'} = $news_source;
+	$self->{'news_resolver'} = $news_resolver;
 
 	$self->{'feed_changed'} = 0; # if something new was added, is set to 1 and feed is saved to disk
 
@@ -103,9 +103,7 @@ sub processNewNews {
 		# to minimize number of requests to server, we refresh only if there are changes now
 		# and if there was a successful save before
 		if ($self->{'last_saved'}) {
-			foreach my $news (@to_refresh) {
-				$self->refreshNews($news);
-			}
+			$self->refreshNews(@to_refresh);
 		}
 		$self->{'last_saved'} = scalar(localtime());
 		$self->{'feed'}->save();
@@ -132,11 +130,10 @@ sub saveNews {
 	foreach my $news (@to_save) {
 		$self->{'pending'}->remove($news);
 		$self->{'saved'}->add($news);
-		
-		$self->{news_resolver}->fetch_summary($news) unless $news->{fetch_error};
-		my $fetch_successful = $news->{fetch_error};
 
-		if (!$fetch_successful) {
+		$self->{news_resolver}->fetch_summary($news) unless $news->{fetch_error};
+
+		if ($news->{fetch_error}) {
 			print "Won't add ", encode_utf8($news->{'title'}), " because its text cannot be fetched.\n";
 		} elsif( my $vulgarism = $news->wasCensored() ) {
 			print "Won't add ", encode_utf8($news->{'title'}), ": contains vulgarism '$vulgarism'\n";
@@ -171,11 +168,9 @@ sub removeNews {
 # checks if the news was changed on server since it was saved here, and
 # marks it for refresh if needed
 sub refreshNews {
-	my($self,$news) = @_;
-	if ($RSS::Settings::DEBUG_MODE) {
-		print "Checking if needs refresh: ", encode_utf8($news->toString(1)), "\n";
-	}
-	if ($news->refresh()) {
+	my($self,@to_refresh) = @_;
+	my @refreshed = $self->{news_resolver}->check_refresh(@to_refresh);
+	foreach my $news (@refreshed) {
 		print "Refreshing news: ", encode_utf8($news->toString(1)), "\n";
 		$self->{'feed'}->replaceEntry( $self->newsToFeed($news) );
 		$self->{'feed_changed'} = 1;

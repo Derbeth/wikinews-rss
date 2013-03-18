@@ -3,13 +3,11 @@
 package RSS::NewsHeadline;
 
 use RSS::Settings;
-use Derbeth::MediaWikiApi;
 
 use strict;
 
 use Time::Local;
 use Time::localtime;
-use URI::Escape qw/uri_escape_utf8/;
 use Encode;
 
 ############################################################################
@@ -58,8 +56,6 @@ sub new {
    $self->{'summary'} = '';
 
    $self->{'source'} = $source;
-   $self->{'api_base_url'} = $source->{wiki_base}."/w/api.php?action=query&format=yaml&titles=".uri_escape_utf8($self->{'title'});
-   #printf("title: '%s' (%s)\n", $self->{'title'}, $title); DEBUG
 
    return $self;
 }
@@ -78,63 +74,45 @@ sub getAgeMinutes {
 	return $time_diff / 60;
 }
 
-sub fetchDetails {
-	my $self = pop @_;
+sub parse_info_response {
+	my ($self, $info_hash) = @_;
+	if ($info_hash->{missing} || $info_hash->{invalid}) {
+		$self->{fetch_error} = 1;
+		return;
+	}
+	my $pageid = $info_hash->{pageid};
+	if (!$pageid || $pageid == -1) {
+		$self->{fetch_error} = 1;
+		return;
+	}
+	# generate GUID according to http://www.rssboard.org/rss-profile#element-channel-item-guid
+	my $domain = $self->{source}->{domain};
+	my $year = localtime->year() + 1900;
+	$self->{guid} = "tag:$domain,$year:$pageid";
 
-	$self->{'fetch_error'} = 0;
-
-	my $info_url = $self->{'api_base_url'} . "&prop=info&inprop=url";
-	my $order = $RSS::Settings::DATE_FROM_NEWEST_REVISION ? 'older' : 'newer';
-	my $revisions_url = $self->{'api_base_url'} . "&prop=revisions&rvprop=timestamp&rvdir=$order&rvlimit=1";
-
-	my $info_json = $self->queryApi($info_url);
-	my $revisions_json = $self->queryApi($revisions_url);
-
-	$self->parseInfoResponse($info_json);
-	$self->parseRevisionsResponse($revisions_json);
-
-	$self->fetchSummary() if !$self->{'fetch_error'};
-
-	return !$self->{'fetch_error'};
+	$self->{lastrevid} = $info_hash->{lastrevid};
+	$self->{link} = $info_hash->{fullurl};
 }
 
-sub queryApi {
-	my ($self, $url) = @_;
-
-	my $response = Derbeth::Web::get_page($url);
-	if ($response !~ /"query"/) {
-		print "Wrong API response for $url: $response\n" if $RSS::Settings::DEBUG_MODE;
-		return '';
+sub needs_refresh {
+	my ($self, $info_hash) = @_;
+	my $new_lastrevid = $info_hash->{lastrevid};
+	if (!$self->{lastrevid} || $self->{lastrevid} < $new_lastrevid) {
+		$self->{lastrevid} = $new_lastrevid;
+		return 1;
 	}
-	return $response;
+	return 0;
 }
 
-sub parseInfoResponse {
-	my ($self, $json) = @_;
-	# TODO handle 'missing' param
-	if ($json =~ m!"pageid" *: *(\d+)!) {
-		# generate GUI according to http://www.rssboard.org/rss-profile#element-channel-item-guid
-		my $pageid = $1;
-		my $domain = $self->{source}->{domain};
-		my $year = localtime->year() + 1900;
-		$self->{'guid'} = "tag:$domain,$year:$pageid";
-	} else {
-		$self->{'fetch_error'} = 1;
+sub parse_revisions_response {
+	my ($self, $revisions_hash) = @_;
+	unless ($revisions_hash && $revisions_hash->{revisions}) {
+		$self->{fetch_error} = 1;
+		return;
 	}
-	if ($json =~ m!"lastrevid" *: *(\d+)!) {
-		$self->{'lastrevid'} = $1;
-	}
-	if ($json =~ m!"fullurl" *: *"([^"]+)"!) {
-		my $link = $1;
-		$link =~ s!\\/!/!g; # TODO replace with a proper YAML parsing
-		$self->{'link'} = $link;
-	}
-}
-
-sub parseRevisionsResponse {
-	my ($self, $json) = @_;
-	if ($json =~ m!"timestamp" *: *"([^"]+)"!) {
-		my $timestamp = $1;
+	my @revisions = @{$revisions_hash->{revisions}};
+	if (@revisions) {
+		my $timestamp = $revisions[0]->{timestamp};
 		my $parsed = $self->timestampToTime($timestamp);
 		if ($parsed) {
 			$self->{'time'} = $parsed;
@@ -158,21 +136,6 @@ sub timestampToTime {
 		$result = timegm($6,$5,$4,$3,$month,$1);
 	}
 	return $result;
-}
-
-sub refresh {
-	my $self = pop @_;
-	my $info_url = $self->{'api_base_url'} . "&prop=info";
-	my $json = Derbeth::Web::get_page($info_url);
-	if ($json =~ m!"lastrevid" *: *(\d+)!) {
-		my $newLastRevId = $1;
-		if (!$self->{'lastrevid'} || $self->{'lastrevid'} < $newLastRevId) {
-			$self->{'lastrevid'} = $newLastRevId;
-			$self->fetchSummary();
-			return 1;
-		}
-	}
-	return 0;
 }
 
 # Function: toString

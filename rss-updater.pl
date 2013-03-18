@@ -74,7 +74,7 @@ foreach my $feed_def (@feed_defs) {
 	my $feed = $feed_def->{'feed'};
 	my $news_source = $feed_def->{'news_source'};
 	print encode_utf8("Feed from $news_source->{wiki_base}=>$news_source->{source} read every $news_source->{check_mins} mins to $feed->{filename}\n");
-	push @news_managers, new RSS::NewsManager($feed, $news_source);
+	push @news_managers, new RSS::NewsManager($feed, $news_source, $feed_def->{'news_resolver'});
 }
 print "Hit Control+C to exit.\n\n";
 
