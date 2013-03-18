@@ -11,22 +11,6 @@ use Time::localtime;
 use Encode;
 
 ############################################################################
-# Group: Settings 
-############################################################################
-
-# Const: $VULGARISMS
-#   Lists of offensive words. If any of these is found in news title or text,
-#   it won't be added to RSS.
-#
-#   You can use regexp here.
-my @VULGARISMS = qw@chuj kutas cipa kurwa kurwy żydy gówno
-	dupczy cwel
-	jeban jebać pierdol pierdal pedał
-	!!!! wheeee
-	shit fuck cock nigger queer bitch@;
-push @VULGARISMS, 'Ten artykuł jest właśnie', 'Strona do natychmiastowego skasowania'; # {{Tworzone}}, {{Ek}}
-
-############################################################################
 # Group: Functions
 ############################################################################
 
@@ -175,17 +159,9 @@ sub process_page_text {
 # Function: wasCensored
 #   returns 1 if news summary or title contain spam or vulgarisms
 sub wasCensored {
-	my $self = pop @_;
-	
-	foreach my $vulgarism (@VULGARISMS)
-	{
-		if( $self->{'summary'} =~ /$vulgarism/si || $self->{'title'} =~ /$vulgarism/si )
-		{
-			return $vulgarism;
-		}
-	}
-	return 0;
-}	
-	
+	my ($self, $vulgarism_detector) = @_;
+	return $vulgarism_detector->detect($self->{summary})
+		|| $vulgarism_detector->detect($self->{title});
+}
 
 1;

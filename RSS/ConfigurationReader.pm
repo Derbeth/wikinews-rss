@@ -1,4 +1,4 @@
-package RSS::FeedDefinitionReader;
+package RSS::ConfigurationReader;
 use strict;
 use utf8;
 
@@ -6,6 +6,7 @@ use RSS::Feed;
 use RSS::NewsResolver;
 use RSS::NewsSource;
 use RSS::Settings;
+use RSS::VulgarismDetector;
 use YAML::Any qw'LoadFile';
 use Derbeth::Web;
 
@@ -17,16 +18,13 @@ sub new {
 	my ($class, $source) = @_;
 	my $self = {};
 	bless($self, $class);
-	$self->{'source'} = $source;
 	return $self;
 }
 
-sub read {
-	my ($self) = @_;
+sub read_feeds {
+	my ($self, $source) = @_;
 
-	open(my $fh, "<:encoding(UTF-8)", $self->{'source'}) || die "cannot read $self->{source}: $!";
-	my $all = LoadFile($self->{'source'});
-	close($fh);
+	my $all = LoadFile($source) || die "cannot read $source";
 	my $domains = $all->{domains};
 	my @defs;
 	foreach my $doc (@{$all->{sources}}) {
@@ -55,12 +53,18 @@ sub read {
 			$doc->{source},
 			$doc->{source_type},
 			$max_new_news);
-			
+
 		my $news_resolver = new RSS::NewsResolver($link_prefix);
 
 		push @defs, {'feed' => $feed, 'news_source' => $news_source, 'news_resolver' => $news_resolver};
 	}
 	return @defs;
+}
+
+sub create_vulgarism_detector {
+	my ($self, $source) = @_;
+	my @vulg_arr = LoadFile($source) || die "cannot read $source";
+	return new RSS::VulgarismDetector(@vulg_arr);
 }
 
 1;

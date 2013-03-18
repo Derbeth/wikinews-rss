@@ -5,6 +5,7 @@ use Test::Assert ':all';
 
 use RSS::NewsHeadline;
 use RSS::NewsResolver;
+use RSS::ConfigurationReader;
 use Derbeth::Web;
 use Derbeth::MediaWikiApi;
 
@@ -12,19 +13,20 @@ my $test_in = 'test/data/';
 
 sub test_vulgar {
 	print "test_vulgar\n";
+	my $vulgarism_detector = new RSS::ConfigurationReader()->create_vulgarism_detector('vulgarisms.yml');
 	my @testdata = (
-	'Fucking queers fuck off!|Test',
-	'Title|Fuck off',
-	'Title|Jebane to wszystko',
-	'Title|Ho ho!!!!!!!!',
-	'Wydupczy|La la la',
+	'Fucking queers fuck off!|Safe content',
+	'Safe title|Fuck off',
+	'Safe title|Jebane to wszystko',
+	'Safe title|Question marks!!!!!!',
+	'Wydupczy|Safe content',
 	);
 
 	foreach my $t (@testdata) {
 		my ($title, $summary) = split /\|/, $t;
 		my $news = new RSS::NewsHeadline({wiki_base=>'foo'}, $title);
 		$news->{'summary'} = $summary;
-		die "should be censored: $t" unless $news->wasCensored();
+		die "should be censored: '$t'" unless $news->wasCensored($vulgarism_detector);
 	}
 
 	print "\tPassed ", scalar(@testdata), " checks\n";

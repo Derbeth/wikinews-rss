@@ -30,7 +30,7 @@ my $MAX_SAVED = 30;
 ####################################
 
 sub new {
-	my ($class, $feed_ref, $news_source, $news_resolver) = @_;
+	my ($class, $feed_ref, $news_source, $news_resolver, $vulgarism_detector) = @_;
 
 	my $self = {};
 	bless($self, $class);
@@ -40,6 +40,7 @@ sub new {
 	$self->{'feed'} = $feed_ref;
 	$self->{'news_source'} = $news_source;
 	$self->{'news_resolver'} = $news_resolver;
+	$self->{'vulgarism_detector'} = $vulgarism_detector;
 
 	$self->{'feed_changed'} = 0; # if something new was added, is set to 1 and feed is saved to disk
 
@@ -135,7 +136,7 @@ sub saveNews {
 
 		if ($news->{fetch_error}) {
 			print "Won't add ", encode_utf8($news->{'title'}), " because its text cannot be fetched.\n";
-		} elsif( my $vulgarism = $news->wasCensored() ) {
+		} elsif( my $vulgarism = $news->wasCensored($self->{vulgarism_detector}) ) {
 			print "Won't add ", encode_utf8($news->{'title'}), ": contains vulgarism '$vulgarism'\n";
 		} else {
 			$self->{'feed'}->addEntry( $self->newsToFeed($news) );

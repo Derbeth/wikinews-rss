@@ -13,7 +13,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use RSS::NewsManager;
-use RSS::FeedDefinitionReader;
+use RSS::ConfigurationReader;
 use RSS::Settings;
 use RSS::Status;
 use Derbeth::Web 0.5.0;
@@ -67,14 +67,16 @@ RSS::Status::set_status(0); # started
 print "rss-updater version $RSS::Settings::VERSION running.\n";
 print "News are accepted after being present for at least $RSS::Settings::NEWS_ACCEPT_TIME minutes\n";
 
-my @feed_defs = new RSS::FeedDefinitionReader('sources.yml')->read();
+my $conf_reader = new RSS::ConfigurationReader();
+my $vulgarism_detector = $conf_reader->create_vulgarism_detector('vulgarisms.yml');
+my @feed_defs = $conf_reader->read_feeds('sources.yml');
 my @news_managers;
 
 foreach my $feed_def (@feed_defs) {
 	my $feed = $feed_def->{'feed'};
 	my $news_source = $feed_def->{'news_source'};
 	print encode_utf8("Feed from $news_source->{wiki_base}=>$news_source->{source} read every $news_source->{check_mins} mins to $feed->{filename}\n");
-	push @news_managers, new RSS::NewsManager($feed, $news_source, $feed_def->{'news_resolver'});
+	push @news_managers, new RSS::NewsManager($feed, $news_source, $feed_def->{'news_resolver'}, $vulgarism_detector);
 }
 print "Hit Control+C to exit.\n\n";
 
