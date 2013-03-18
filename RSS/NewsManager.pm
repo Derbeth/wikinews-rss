@@ -125,6 +125,7 @@ sub processNewNews {
 #   If news is vulgar, it won't be added to the news feed.
 sub saveNews {
 	my($self, @to_save) = @_;
+	return unless @to_save;
 
 	$self->{news_resolver}->fetch_details(@to_save);
 
@@ -170,6 +171,7 @@ sub removeNews {
 # marks it for refresh if needed
 sub refreshNews {
 	my($self,@to_refresh) = @_;
+	return unless @to_refresh;
 	my @refreshed = $self->{news_resolver}->check_refresh(@to_refresh);
 	foreach my $news (@refreshed) {
 		print "Refreshing news: ", encode_utf8($news->toString(1)), "\n";
