@@ -18,8 +18,8 @@ use HTML::Form;
 
 our @ISA = qw/Exporter/;
 our @EXPORT = qw/get_page/;
-our $VERSION = 0.6.0;
-use vars qw($user_agent $cache_pages $max_files_in_cache $debug $cache_dir);
+our $VERSION = 0.6.1;
+use vars qw($user_agent $cache_pages $max_files_in_cache $debug $cache_dir $timeout);
 
 # Variable: $cache_dir
 #   name of directory holding cache
@@ -27,6 +27,9 @@ $cache_dir = 'page-cache';
 # Variable: $max_files_in_cache
 #   maximal number of cached pages
 $max_files_in_cache=15000;
+# Variable: $timeout
+#   number of seconds of timeout for fetching pages from web
+$timeout=200;
 $debug=0;
 # Variable: $user_agent
 #   user agent passed to server when retrieving pages
@@ -65,7 +68,7 @@ sub get_page_from_web {
 	my $ua = LWP::UserAgent->new;
 	$ua->agent($user_agent);
 	$ua->proxy('http', $proxy) if ($proxy);
-	$ua->timeout(90); # 1.5 minute
+	$ua->timeout($timeout);
 	my $response = $ua->get($full_url);
 	if ($response->is_success) {
 		return decode_utf8($response->content);

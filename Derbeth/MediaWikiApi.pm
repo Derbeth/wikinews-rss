@@ -4,6 +4,7 @@ use utf8;
 
 use Derbeth::Web;
 
+use Encode;
 use URI::Escape;
 use YAML::Any;
 
@@ -15,6 +16,10 @@ sub rendered_page {
 	my ($wiki_base, $page_title) = @_;
 	my $parsed = query($wiki_base, "/w/api.php?action=parse&format=yaml&prop=text|revid&disablepp=true&page=".uri_escape_utf8($page_title));
 	unless(defined $parsed) {
+		return undef;
+	}
+	if ($parsed->{error}) {
+		print encode_utf8("API responded with error for '$page_title': "), $parsed->{error}->{info}, "\n";
 		return undef;
 	}
 	my $page_text = $parsed->{parse}->{text}->{'*'};

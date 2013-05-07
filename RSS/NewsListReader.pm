@@ -2,6 +2,7 @@ package RSS::NewsListReader;
 use strict;
 use utf8;
 
+use Encode;
 use RSS::Status;
 
 # Const: $MAX_FETCH_FAILURES
@@ -33,7 +34,7 @@ sub fetch_titles {
 sub report_fetch_failure {
 	my ($self, $error_msg) = @_;
 	my $now = localtime();
-	print "$now:  $error_msg\n";
+	print encode_utf8("$now:  $error_msg\n");
 	if( ++$self->{fetch_failures} >= $MAX_FETCH_FAILURES ) {
 		set_status(2);
 		die "too many errors ($self->{fetch_failures})";
