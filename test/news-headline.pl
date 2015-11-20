@@ -34,6 +34,7 @@ sub test_vulgar {
 
 sub test_parse_info_response {
 	my $news = new RSS::NewsHeadline({wiki_base=>'foo',domain=>'pl.wikinews.org'},'foo','link');
+	$news->{test_year} = 2013;
 	my $in_file = "$test_in/info_response.json";
 	my $parsed_yaml = Derbeth::MediaWikiApi::parse_yaml(Derbeth::Web::get_page_from_file($in_file)) || die "cannot read $in_file";
 	my $info_hash = RSS::NewsResolver::get_single_page_hash($parsed_yaml);

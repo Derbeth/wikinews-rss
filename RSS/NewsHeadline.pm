@@ -71,7 +71,7 @@ sub parse_info_response {
 	}
 	# generate GUID according to http://www.rssboard.org/rss-profile#element-channel-item-guid
 	my $domain = $self->{source}->{domain};
-	my $year = localtime->year() + 1900;
+	my $year = $self->{test_year} || localtime->year() + 1900;
 	$self->{guid} = "tag:$domain,$year:$pageid";
 
 	$self->{lastrevid} = $info_hash->{lastrevid};
