@@ -14,7 +14,7 @@ if (YAML::Any->implementation eq 'YAML::Syck') {
 
 sub rendered_page {
 	my ($wiki_base, $page_title) = @_;
-	my $parsed = query($wiki_base, "/w/api.php?action=parse&format=yaml&prop=text|revid&disablepp=true&page=".uri_escape_utf8($page_title));
+	my $parsed = query($wiki_base, "/w/api.php?action=parse&format=json&prop=text|revid&disablepp=true&page=".uri_escape_utf8($page_title));
 	unless(defined $parsed) {
 		return undef;
 	}

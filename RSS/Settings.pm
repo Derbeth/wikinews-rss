@@ -15,7 +15,7 @@ use vars qw($ADMIN_MAIL $FORCED_FEED_CHECK_INTERVAL $DATE_FROM_NEWEST_REVISION
 
 # Const: $VERSION
 #   program version
-$VERSION = '0.8.0';
+$VERSION = '0.8.1';
 
 # Const: $DEBUG_MODE
 #   setting to true causes more diagnostic messages to be printed

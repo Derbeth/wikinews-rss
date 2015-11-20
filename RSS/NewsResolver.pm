@@ -14,7 +14,7 @@ sub new {
 	my $self = {};
 	bless($self, $class);
 	$self->{wiki_base} = $wiki_base;
-	$self->{query_base} = "/w/api.php?action=query&format=yaml";
+	$self->{query_base} = "/w/api.php?action=query&format=json";
 	return $self;
 }
 

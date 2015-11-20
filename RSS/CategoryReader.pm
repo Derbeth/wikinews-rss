@@ -15,7 +15,7 @@ sub new {
 	$self->{source} = $source;
 	$source = uri_escape_utf8("Category:$source");
 	$self->{wiki_base} = $wiki_base;
-	$self->{query} = "/w/api.php?action=query&format=yaml"
+	$self->{query} = "/w/api.php?action=query&format=json"
 			. "&list=categorymembers&cmsort=timestamp&cmdir=desc&cmlimit=".$max_new_news
 			."&cmtitle=$source";
 	return $self;
