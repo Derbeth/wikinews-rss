@@ -1,4 +1,4 @@
 language: perl
 perl:
   - "5.22"
-install: cpanm --quiet --installdeps --notest Test::Assert Unicode::Escape YAML::Any
+install: cpanm --installdeps --notest Test::Assert Unicode::Escape YAML::Any
