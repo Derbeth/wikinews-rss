@@ -1,4 +1,4 @@
 language: perl
 perl:
   - "5.22"
-install: cpanm --verbose --installdeps --notest Test::Assert Unicode::Escape YAML::Any ; cpanm Test::Assert ; ls /home/travis/perl5/perlbrew/perls/5.22.0/lib/site_perl/5.22.0/Test
+install: cpanm --verbose --installdeps --notest Test::Assert Unicode::Escape YAML::Any HTML::Form ; ls /home/travis/perl5/perlbrew/perls/5.22.0/lib/site_perl/5.22.0/Test ; cpanm Test::Assert ; ls /home/travis/perl5/perlbrew/perls/5.22.0/lib/site_perl/5.22.0/Test
