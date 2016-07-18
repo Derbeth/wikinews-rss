@@ -1,6 +1,6 @@
 .PHONY: test
 
 test:
-	test/news-headline.pl
-	test/status.pl
-	test/web.pl
+	perl test/news-headline.pl
+	perl test/status.pl
+	perl test/web.pl
