@@ -5,5 +5,5 @@ requires 'YAML::XS';
 requires 'HTML::Form';
 
 on test => sub {
-	requires 'Test::Assert'
+	requires 'Test::Assert';
 };
