@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 
 use strict;
-use POSIX qw(strftime);
 use Test::Assert ':all';
 
 use RSS::NewsHeadline;
@@ -34,7 +33,6 @@ sub test_vulgar {
 }
 
 sub test_parse_info_response {
-	my $curr_year = strftime "%Y", localtime;
 	my $news = new RSS::NewsHeadline({wiki_base=>'foo',domain=>'pl.wikinews.org'},'foo','link');
 	$news->{test_year} = 2013;
 	my $in_file = "$test_in/info_response.json";
@@ -44,7 +42,7 @@ sub test_parse_info_response {
 	$news->parse_info_response($info_hash);
 	assert_false($news->{'fetch_error'});
 	assert_num_equals(199643, $news->{'lastrevid'});
-	assert_equals("tag:pl.wikinews.org,$curr_year:44953", $news->{'guid'});
+	assert_equals('tag:pl.wikinews.org,2013:44953', $news->{'guid'});
 	assert_equals('http://pl.wikinews.org/wiki/220._rocznica_%C5%9Bmierci_Ludwika_XVI', $news->{'link'});
 	print "Passed test_parse_info_response\n";
 }
