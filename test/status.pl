@@ -2,6 +2,7 @@
 
 use strict;
 
+use lib '.';
 use RSS::Settings;
 use RSS::Status;
 

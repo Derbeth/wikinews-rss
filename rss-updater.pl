@@ -12,6 +12,7 @@ use Encode;
 use Getopt::Long;
 use Pod::Usage;
 
+use lib '.';
 use RSS::NewsManager;
 use RSS::ConfigurationReader;
 use RSS::Settings;

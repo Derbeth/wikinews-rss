@@ -3,6 +3,7 @@
 use strict;
 use Test::Assert ':all';
 
+use lib '.';
 use RSS::NewsHeadline;
 use RSS::NewsResolver;
 use RSS::ConfigurationReader;

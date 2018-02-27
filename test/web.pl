@@ -3,6 +3,7 @@
 use strict;
 use utf8;
 
+use lib '.';
 use Derbeth::Web;
 
 use File::Path qw(make_path remove_tree);
